@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !isset($_POST['update_id'])) {
             <td class="description"><?= htmlspecialchars($row['description']) ?></td>
             <td>
               <button type="button" class="btn btn-warning btn-sm editBtn">✏️</button>
-              <a href="vaccination.php?delete_id=<?= $row['id'] ?>" onclick="return confirm('Urashaka koko gusiba?')"
+              <a href="delete-vaccination.php?delete_id=<?= $row['id'] ?>" onclick="return confirm('Urashaka koko gusiba?')"
                 class="btn btn-danger btn-sm">🗑️</a>
             </td>
           </tr>
@@ -125,22 +125,60 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !isset($_POST['update_id'])) {
       const next = row.querySelector(".next_due_date").innerText;
       const desc = row.querySelector(".description").innerText;
 
-      // Replace with input fields + form
+      // Replace with input fields and Save button (no form)
       row.innerHTML = `
-          <form method="POST">
-            <td>${row.cells[0].innerText}</td>
-            <td><input type="text" name="flock_name" value="${flock}" class="form-control" required></td>
-            <td><input type="text" name="vaccine_name" value="${vaccine}" class="form-control" required></td>
-            <td><input type="date" name="date_given" value="${date}" class="form-control" required></td>
-            <td><input type="date" name="next_due_date" value="${next}" class="form-control"></td>
-            <td><input type="text" name="description" value="${desc}" class="form-control"></td>
-            <td>
-              <input type="hidden" name="update_id" value="${id}">
-              <button type="submit" class="btn btn-success btn-sm">✔️ Save</button>
-              <button type="button" class="btn btn-secondary btn-sm" onclick="location.reload()">❌ Cancel</button>
-            </td>
-          </form>
-        `;
+        <td>${row.cells[0].innerText}</td>
+        <td><input type="text" class="form-control" value="${flock}" id="edit-flock"></td>
+        <td><input type="text" class="form-control" value="${vaccine}" id="edit-vaccine"></td>
+        <td><input type="date" class="form-control" value="${date}" id="edit-date"></td>
+        <td><input type="date" class="form-control" value="${next}" id="edit-next"></td>
+        <td><input type="text" class="form-control" value="${desc}" id="edit-desc"></td>
+        <td>
+          <button type="button" class="btn btn-success btn-sm saveEditBtn">✔️ Save</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="location.reload()">❌ Cancel</button>
+        </td>
+      `;
+      row.querySelector(".saveEditBtn").addEventListener("click", function(){
+        const newFlock = row.querySelector('#edit-flock').value;
+        const newVaccine = row.querySelector('#edit-vaccine').value;
+        const newDate = row.querySelector('#edit-date').value;
+        const newNext = row.querySelector('#edit-next').value;
+        const newDesc = row.querySelector('#edit-desc').value;
+        const formData = new FormData();
+        formData.append('update_id', id);
+        formData.append('flock_name', newFlock);
+        formData.append('vaccine_name', newVaccine);
+        formData.append('date_given', newDate);
+        formData.append('next_due_date', newNext);
+        formData.append('description', newDesc);
+        fetch('vaccination.php', {
+          method: 'POST',
+          body: formData
+        })
+        .then(res => res.text())
+        .then(html => {
+          const toast = document.createElement('div');
+          toast.className = 'alert alert-success';
+          toast.style.position = 'fixed';
+          toast.style.top = '20px';
+          toast.style.right = '20px';
+          toast.style.zIndex = 9999;
+          toast.innerText = 'Vaccination updated successfully!';
+          document.body.appendChild(toast);
+          setTimeout(() => { toast.remove(); location.reload(); }, 1200);
+        })
+        .catch(() => {
+          const toast = document.createElement('div');
+          toast.className = 'alert alert-danger';
+          toast.style.position = 'fixed';
+          toast.style.top = '20px';
+          toast.style.right = '20px';
+          toast.style.zIndex = 9999;
+          toast.innerText = 'Failed to update vaccination!';
+          document.body.appendChild(toast);
+          setTimeout(() => toast.remove(), 2000);
+        });
+      });
     });
   });
 </script>

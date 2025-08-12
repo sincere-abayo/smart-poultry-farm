@@ -5,7 +5,8 @@ require_once('../config.php');
 if (isset($_GET['delete_id'])) {
     $id = intval($_GET['delete_id']);
     $conn->query("DELETE FROM expenses WHERE id = $id");
-    echo "<script>alert('Expense yasibwe neza!'); window.location='expenses.php';</script>";
+    echo "<script>alert('Expense yasibwe neza!');";
+    header("refresh:1; url=?page=expenses"); // Redirect to expenses page
     exit;
 }
 
@@ -19,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_id'])) {
     $stmt = $conn->prepare("UPDATE expenses SET expense_title=?, amount=?, description=? WHERE id=?");
     $stmt->bind_param("sdsi", $title, $amount, $desc, $id);
     $stmt->execute();
-    echo "<script>alert('Expense yavuguruwe neza!'); window.location='expenses.php';</script>";
+    echo "<script>alert('Expense yavuguruwe neza!'); window.location='?page=expenses';</script>";
     exit;
 }
 
@@ -107,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !isset($_POST['update_id'])) {
         <td><?= $row['date_created'] ?></td>
         <td>
           <button type="button" class="btn btn-warning btn-sm editBtn">✏️</button>
-          <a href="expenses.php?delete_id=<?= $row['id'] ?>" onclick="return confirm('Urashaka koko gusiba iyi expense?')" class="btn btn-danger btn-sm">🗑️</a>
+          <a href="delete-expense.php?delete_id=<?= $row['id'] ?>" onclick="return confirm('Urashaka koko gusiba iyi expense?')" class="btn btn-danger btn-sm">🗑️</a>
         </td>
       </tr>
       <?php endwhile; ?>

@@ -91,123 +91,103 @@ $result = $conn->query("SELECT * FROM production ORDER BY production_date DESC")
 
 <h2>Production Records</h2>
 
-<form method="POST" id="updateForm">
-    <table id="printableTable">
-        <tr>
-            <th>Date</th>
-            <th>Type</th>
-            <th>Chicken Type</th>
-            <th>Quantity</th>
-            <th>Description</th>
-            <th class="noprint">Actions</th>
-        </tr>
-        <?php while($row = $result->fetch_assoc()): ?>
-        <tr id="row<?= $row['id'] ?>"
-            data-production_date="<?= htmlspecialchars($row['production_date']) ?>"
-            data-production_type="<?= htmlspecialchars($row['production_type']) ?>"
-            data-chicken_type="<?= htmlspecialchars($row['chicken_type']) ?>"
-            data-quantity="<?= htmlspecialchars($row['quantity']) ?>"
-            data-description="<?= htmlspecialchars($row['description']) ?>"
-        >
-            <td>
-                <span><?= htmlspecialchars($row['production_date']) ?></span>
-                <input type="date" name="production_date" value="<?= htmlspecialchars($row['production_date']) ?>" style="display:none;">
-            </td>
-            <td>
-                <span><?= ucfirst(htmlspecialchars($row['production_type'])) ?></span>
-                <select name="production_type" style="display:none;">
-                    <option value="chicken" <?= $row['production_type'] == 'chicken' ? 'selected' : '' ?>>Chicken</option>
-                    <option value="egg" <?= $row['production_type'] == 'egg' ? 'selected' : '' ?>>Egg</option>
-                </select>
-            </td>
-            <td>
-                <span><?= htmlspecialchars($row['chicken_type']) ?></span>
-                <input type="text" name="chicken_type" value="<?= htmlspecialchars($row['chicken_type']) ?>" style="display:none;">
-            </td>
-            <td>
-                <span><?= htmlspecialchars($row['quantity']) ?></span>
-                <input type="number" name="quantity" value="<?= htmlspecialchars($row['quantity']) ?>" style="display:none;">
-            </td>
-            <td>
-                <span><?= htmlspecialchars($row['description']) ?></span>
-                <input type="text" name="description" value="<?= htmlspecialchars($row['description']) ?>" style="display:none;">
-            </td>
-            <td class="noprint">
-                <button type="button" onclick="editRow(<?= $row['id'] ?>)">✏️ Edit</button>
-                <button type="button" class="deleteBtn" data-id="<?= $row['id'] ?>" title="Delete">🗑️</button>
-            </td>
-        </tr>
-        <?php endwhile; ?>
-    </table>
+<table id="printableTable">
+    <tr>
+        <th>Date</th>
+        <th>Type</th>
+        <th>Chicken Type</th>
+        <th>Quantity</th>
+        <th>Description</th>
+        <th class="noprint">Actions</th>
+    </tr>
+    <?php while($row = $result->fetch_assoc()): ?>
+    <tr id="row<?= $row['id'] ?>"
+        data-production_date="<?= htmlspecialchars($row['production_date']) ?>"
+        data-production_type="<?= htmlspecialchars($row['production_type']) ?>"
+        data-chicken_type="<?= htmlspecialchars($row['chicken_type']) ?>"
+        data-quantity="<?= htmlspecialchars($row['quantity']) ?>"
+        data-description="<?= htmlspecialchars($row['description']) ?>"
+    >
+        <td class="prod-date"><?= htmlspecialchars($row['production_date']) ?></td>
+        <td class="prod-type"><?= ucfirst(htmlspecialchars($row['production_type'])) ?></td>
+        <td class="prod-chicken"><?= htmlspecialchars($row['chicken_type']) ?></td>
+        <td class="prod-qty"><?= htmlspecialchars($row['quantity']) ?></td>
+        <td class="prod-desc"><?= htmlspecialchars($row['description']) ?></td>
+        <td class="noprint">
+            <button type="button" onclick="editRow(<?= $row['id'] ?>)">✏️ Edit</button>
+            <button type="button" class="deleteBtn" data-id="<?= $row['id'] ?>" title="Delete">🗑️</button>
+        </td>
+    </tr>
+    <?php endwhile; ?>
+</table>
 
-    <div class="noprint" style="margin-top: 15px;">
-        <button type="button" onclick="window.print()">🖨️ Print Records</button>
-    </div>
-
-    <input type="hidden" name="update_id" id="update_id">
-    <div class="noprint" style="margin-top: 10px;">
-        <button type="submit" style="display:none;" id="saveBtn">✅ Save Update</button>
-        <button type="button" onclick="cancelEdit()" style="display:none;" id="cancelBtn">❌ Cancel</button>
-    </div>
-</form>
+<div class="noprint" style="margin-top: 15px;">
+    <button type="button" onclick="window.print()">🖨️ Print Records</button>
+</div>
 
 <script>
 function editRow(id) {
     const row = document.getElementById('row' + id);
-    // Hide spans, show inputs
-    const spans = row.querySelectorAll('span');
-    const inputs = row.querySelectorAll('input, select');
-    spans.forEach(s => s.style.display = 'none');
-    inputs.forEach(i => i.style.display = 'inline');
-
-    document.getElementById('saveBtn').style.display = 'inline';
-    document.getElementById('cancelBtn').style.display = 'inline';
-    document.getElementById('update_id').value = id;
-}
-
-function cancelEdit() {
-    const id = document.getElementById('update_id').value;
-    if (!id) return; // no edit ongoing
-
-    const row = document.getElementById('row' + id);
-
-    // Restore values from data attributes
-    const original = {
-        production_date: row.getAttribute('data-production_date'),
-        production_type: row.getAttribute('data-production_type'),
-        chicken_type: row.getAttribute('data-chicken_type'),
-        quantity: row.getAttribute('data-quantity'),
-        description: row.getAttribute('data-description'),
-    };
-
-    // Update input values & spans to original
-    row.querySelector('input[name="production_date"]').value = original.production_date;
-    row.querySelector('select[name="production_type"]').value = original.production_type;
-    row.querySelector('input[name="chicken_type"]').value = original.chicken_type;
-    row.querySelector('input[name="quantity"]').value = original.quantity;
-    row.querySelector('input[name="description"]').value = original.description;
-
-    row.querySelector('span:nth-child(1)').textContent = original.production_date;
-    row.querySelector('td:nth-child(2) span').textContent = capitalize(original.production_type);
-    row.querySelector('td:nth-child(3) span').textContent = original.chicken_type;
-    row.querySelector('td:nth-child(4) span').textContent = original.quantity;
-    row.querySelector('td:nth-child(5) span').textContent = original.description;
-
-    // Show spans, hide inputs
-    const spans = row.querySelectorAll('span');
-    const inputs = row.querySelectorAll('input, select');
-    spans.forEach(s => s.style.display = 'inline');
-    inputs.forEach(i => i.style.display = 'none');
-
-    // Hide save and cancel buttons, clear update_id
-    document.getElementById('saveBtn').style.display = 'none';
-    document.getElementById('cancelBtn').style.display = 'none';
-    document.getElementById('update_id').value = '';
-}
-
-function capitalize(str) {
-    if (!str) return '';
-    return str.charAt(0).toUpperCase() + str.slice(1);
+    const date = row.querySelector('.prod-date').innerText;
+    const type = row.querySelector('.prod-type').innerText.toLowerCase();
+    const chicken = row.querySelector('.prod-chicken').innerText;
+    const qty = row.querySelector('.prod-qty').innerText;
+    const desc = row.querySelector('.prod-desc').innerText;
+    row.innerHTML = `
+        <td><input type="date" class="form-control" value="${date}" id="edit-date"></td>
+        <td><select class="form-control" id="edit-type">
+            <option value="chicken" ${type === 'chicken' ? 'selected' : ''}>Chicken</option>
+            <option value="egg" ${type === 'egg' ? 'selected' : ''}>Egg</option>
+        </select></td>
+        <td><input type="text" class="form-control" value="${chicken}" id="edit-chicken"></td>
+        <td><input type="number" class="form-control" value="${qty}" id="edit-qty"></td>
+        <td><input type="text" class="form-control" value="${desc}" id="edit-desc"></td>
+        <td class="noprint">
+            <button type="button" class="btn btn-success btn-sm saveEditBtn">✔️ Save</button>
+            <button type="button" class="btn btn-secondary btn-sm" onclick="location.reload()">❌ Cancel</button>
+        </td>
+    `;
+    row.querySelector(".saveEditBtn").addEventListener("click", function(){
+        const newDate = row.querySelector('#edit-date').value;
+        const newType = row.querySelector('#edit-type').value;
+        const newChicken = row.querySelector('#edit-chicken').value;
+        const newQty = row.querySelector('#edit-qty').value;
+        const newDesc = row.querySelector('#edit-desc').value;
+        const formData = new FormData();
+        formData.append('update_id', id);
+        formData.append('production_date', newDate);
+        formData.append('production_type', newType);
+        formData.append('chicken_type', newChicken);
+        formData.append('quantity', newQty);
+        formData.append('description', newDesc);
+        fetch('production.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(res => res.text())
+        .then(html => {
+            const toast = document.createElement('div');
+            toast.className = 'alert alert-success';
+            toast.style.position = 'fixed';
+            toast.style.top = '20px';
+            toast.style.right = '20px';
+            toast.style.zIndex = 9999;
+            toast.innerText = 'Production updated successfully!';
+            document.body.appendChild(toast);
+            setTimeout(() => { toast.remove(); location.reload(); }, 1200);
+        })
+        .catch(() => {
+            const toast = document.createElement('div');
+            toast.className = 'alert alert-danger';
+            toast.style.position = 'fixed';
+            toast.style.top = '20px';
+            toast.style.right = '20px';
+            toast.style.zIndex = 9999;
+            toast.innerText = 'Failed to update production!';
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 2000);
+        });
+    });
 }
 
 $(document).ready(function(){
