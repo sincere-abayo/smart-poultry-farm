@@ -1,0 +1,151 @@
+<?php
+if(session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+require_once(dirname(__FILE__) . '/DBConnection.php');
+
+class Master extends DBConnection {
+    private $settings;
+    
+    public function __construct() {
+        parent::__construct();
+        global $_settings;
+        if (!isset($_settings)) {
+            require_once(dirname(__FILE__) . '/SystemSettings.php');
+        }
+        $this->settings = $_settings;
+    }
+    
+    public function __destruct() {
+        parent::__destruct();
+    }
+    
+    function login() {
+        try {
+            if (!isset($_POST['email']) || !isset($_POST['password'])) {
+                throw new Exception("Email and password are required");
+            }
+            
+            $email = $_POST['email'];
+            $password = md5($_POST['password']);
+            
+            $stmt = $this->conn->prepare("SELECT * FROM clients WHERE email = ? AND password = ?");
+            $stmt->bind_param("ss", $email, $password);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            if ($result->num_rows > 0) {
+                $user_data = $result->fetch_assoc();
+                $_SESSION['auth_user'] = $user_data;
+                
+                return json_encode([
+                    'status' => 'success',
+                    'msg' => 'Login successful'
+                ]);
+            } else {
+                throw new Exception("Invalid email or password");
+            }
+        } catch (Exception $e) {
+            return json_encode([
+                'status' => 'failed',
+                'msg' => $e->getMessage()
+            ]);
+        }
+    }
+    
+    function update_account() {
+        try {
+            if (!isset($_SESSION['auth_user']) || !isset($_SESSION['auth_user']['id'])) {
+                throw new Exception("User not logged in");
+            }
+            
+            if (!isset($_POST['id']) || !isset($_POST['email'])) {
+                throw new Exception("Required fields are missing");
+            }
+            
+            $id = $_POST['id'];
+            $email = $_POST['email'];
+            $firstname = $_POST['firstname'] ?? '';
+            $lastname = $_POST['lastname'] ?? '';
+            $gender = $_POST['gender'] ?? '';
+            $contact = $_POST['contact'] ?? '';
+            $default_delivery_address = $_POST['default_delivery_address'] ?? '';
+            
+            if ($_SESSION['auth_user']['id'] != $id) {
+                throw new Exception("Unauthorized access");
+            }
+            
+            $stmt = $this->conn->prepare("SELECT COUNT(*) as count FROM clients WHERE email = ? AND id != ?");
+            $stmt->bind_param("si", $email, $id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $count = $result->fetch_assoc()['count'];
+            $stmt->close();
+            
+            if ($count > 0) {
+                throw new Exception("Email already exists");
+            }
+            
+            $update_password = false;
+            $new_password = '';
+            
+            if (!empty($_POST['password'])) {
+                if (empty($_POST['cpassword'])) {
+                    throw new Exception("Please provide current password");
+                }
+                
+                $stmt = $this->conn->prepare("SELECT password FROM clients WHERE id = ?");
+                $stmt->bind_param("i", $id);
+                $stmt->execute();
+                $current_pwd = $stmt->get_result()->fetch_assoc()['password'];
+                $stmt->close();
+                
+                if (md5($_POST['cpassword']) != $current_pwd) {
+                    throw new Exception("Current Password is incorrect");
+                }
+                
+                $update_password = true;
+                $new_password = md5($_POST['password']);
+            }
+            
+            if ($update_password) {
+                $sql = "UPDATE clients SET firstname=?, lastname=?, gender=?, contact=?, email=?, default_delivery_address=?, password=? WHERE id=?";
+                $stmt = $this->conn->prepare($sql);
+                $stmt->bind_param("sssssssi", $firstname, $lastname, $gender, $contact, $email, $default_delivery_address, $new_password, $id);
+            } else {
+                $sql = "UPDATE clients SET firstname=?, lastname=?, gender=?, contact=?, email=?, default_delivery_address=? WHERE id=?";
+                $stmt = $this->conn->prepare($sql);
+                $stmt->bind_param("ssssssi", $firstname, $lastname, $gender, $contact, $email, $default_delivery_address, $id);
+            }
+            
+            $save = $stmt->execute();
+            $stmt->close();
+            
+            if ($save) {
+                $_SESSION['auth_user']['firstname'] = $firstname;
+                $_SESSION['auth_user']['lastname'] = $lastname;
+                $_SESSION['auth_user']['gender'] = $gender;
+                $_SESSION['auth_user']['contact'] = $contact;
+                $_SESSION['auth_user']['email'] = $email;
+                $_SESSION['auth_user']['default_delivery_address'] = $default_delivery_address;
+                
+                if ($update_password) {
+                    $_SESSION['auth_user']['password'] = $new_password;
+                }
+                
+                return json_encode([
+                    'status' => 'success',
+                    'msg' => 'User details successfully updated'
+                ]);
+            } else {
+                throw new Exception($this->conn->error);
+            }
+        } catch (Exception $e) {
+            return json_encode([
+                'status' => 'failed',
+                'msg' => $e->getMessage()
+            ]);
+        }
+    }
+}

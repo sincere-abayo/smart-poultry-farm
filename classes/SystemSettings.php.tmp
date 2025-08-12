@@ -1,0 +1,11 @@
+    function userdata($field = null) {
+        if(!empty($field)) {
+            if(isset($_SESSION[$field])) {
+                return $_SESSION[$field];
+            } else {
+                return null;
+            }
+        } else {
+            return !empty($_SESSION) ? $_SESSION : null;
+        }
+    }

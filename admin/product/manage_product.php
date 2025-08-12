@@ -48,6 +48,10 @@ if(isset($_GET['id']) && $_GET['id'] > 0){
                 <textarea name="specs" cols="30" rows="2" class="form-control no-resize summernote"><?php echo isset($specs) ? $specs : ''; ?></textarea>
 			</div>
             <div class="form-group">
+                <label for="price" class="control-label">Price</label>
+                <input type="number" step="0.01" min="0" name="price" id="price" class="form-control rounded-0" required value="<?php echo isset($id) ? (isset($conn) ? ($conn->query("SELECT price FROM inventory WHERE product_id = '{$id}'")->fetch_assoc()['price'] ?? '') : '') : '' ?>" />
+            </div>
+            <div class="form-group">
 				<label for="status" class="control-label">Status</label>
                 <select name="status" id="status" class="custom-select">
                     <option value="1" <?php echo isset($status) && $status == 1 ? 'selected' : '' ?>>Active</option>
@@ -130,7 +134,7 @@ if(isset($_GET['id']) && $_GET['id'] > 0){
 			 $('.err-msg').remove();
 			start_loader();
 			$.ajax({
-				url:_base_url_+"classes/Master.php?f=save_product",
+				url:_base_url_+"classes/handler.php?f=save_product",
 				data: new FormData($(this)[0]),
                 cache: false,
                 contentType: false,
@@ -145,7 +149,8 @@ if(isset($_GET['id']) && $_GET['id'] > 0){
 				},
 				success:function(resp){
 					if(typeof resp =='object' && resp.status == 'success'){
-						location.href = "./?page=product";
+					alert_toast("Product saved successfully!", "success");
+					setTimeout(function(){ location.href = "./?page=product"; }, 1500);
 					}else if(resp.status == 'failed' && !!resp.msg){
                         var el = $('<div>')
                             el.addClass("alert alert-danger err-msg").text(resp.msg)

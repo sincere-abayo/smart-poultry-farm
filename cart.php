@@ -95,7 +95,7 @@
         calc_total()
 
         $.ajax({
-            url:'classes/Master.php?f=update_cart_qty',
+            url:'classes/handler.php?f=update_cart_qty',
             method:'POST',
             data:{id:cart_id, quantity: qty},
             dataType:'json',

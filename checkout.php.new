@@ -1,4 +1,4 @@
-<?php
+<?php 
 require_once('inc/header.php');
 ?>
 <script src="https://www.paypalobjects.com/api/checkout.js"></script>
@@ -9,7 +9,7 @@ $qry = $conn->query("SELECT c.*, p.name, i.price, p.id as pid
     INNER JOIN `inventory` i ON i.id = c.inventory_id 
     INNER JOIN products p ON p.id = i.product_id 
     WHERE c.client_id = " . $_settings->userdata('id'));
-while ($row = $qry->fetch_assoc()):
+while($row = $qry->fetch_assoc()):
     $total += $row['price'] * $row['quantity'];
 endwhile;
 ?>
@@ -36,8 +36,7 @@ endwhile;
                                     <label for="customRadio4" class="custom-control-label">For Delivery</label>
                                 </div>
                                 <div class="custom-control custom-radio ml-3">
-                                    <input
-                                        class="custom-control-input custom-control-input-primary custom-control-input-outline"
+                                    <input class="custom-control-input custom-control-input-primary custom-control-input-outline"
                                         type="radio" id="customRadio5" name="order_type" value="2">
                                     <label for="customRadio5" class="custom-control-label">For Pick up</label>
                                 </div>
@@ -54,8 +53,7 @@ endwhile;
                             <div class="col my-3">
                                 <h4 class="text-muted">Payment Method</h4>
                                 <div class="d-flex flex-column">
-                                    <button type="button" class="btn btn-flat btn-dark mb-2"
-                                        onclick="submitWithCOD()">Cash on
+                                    <button type="button" class="btn btn-flat btn-dark mb-2" onclick="submitWithCOD()">Cash on
                                         Delivery</button>
 
                                     <div class="mb-2">
@@ -89,7 +87,7 @@ endwhile;
             color: 'blue',
             size: 'small'
         },
-        payment: function (data, actions) {
+        payment: function(data, actions) {
             return actions.payment.create({
                 payment: {
                     transactions: [
@@ -103,8 +101,8 @@ endwhile;
                 }
             });
         },
-        onAuthorize: function (data, actions) {
-            return actions.payment.execute().then(function (payment) {
+        onAuthorize: function(data, actions) {
+            return actions.payment.execute().then(function(payment) {
                 submitOrder("Online Payment", 1);
             });
         }
@@ -114,81 +112,45 @@ endwhile;
     function submitOrder(paymentMethod, paid) {
         var form = $('#place_order');
         if (form.data('submitting')) return false;
-
-        // Validate required fields
-        var amount = $('[name="amount"]').val();
-        var orderType = $('[name="order_type"]:checked').val();
-
-        if (!amount || amount <= 0) {
-            alert_toast("Invalid order amount", "error");
-            return false;
-        }
-
-        if (!orderType) {
-            alert_toast("Please select an order type", "error");
-            return false;
-        }
-
-        // For delivery orders, validate address
-        if (orderType == '1' && !$('[name="delivery_address"]').val().trim()) {
-            alert_toast("Please enter delivery address", "error");
-            return false;
-        }
-
         form.data('submitting', true);
+        
         start_loader();
-
+        
         $('[name="payment_method"]').val(paymentMethod);
         $('[name="paid"]').val(paid);
 
         $.ajax({
-            url: 'classes/handler.php?f=place_order',
+            url: 'classes/Master.php?f=place_order',
             method: 'POST',
             data: form.serialize(),
             dataType: "json",
-            timeout: 30000, // 30 second timeout
-            error: function (xhr, status, error) {
+            error: function(xhr, status, error) {
                 console.log("Order Error Details:", {
                     status: status,
-                    statusText: xhr.statusText,
                     error: error,
-                    responseText: xhr.responseText,
-                    state: xhr.state(),
-                    readyState: xhr.readyState
+                    response: xhr.responseText
                 });
-
+                
                 var errorMessage = "An error occurred while processing your order";
-
                 if (xhr.responseText) {
                     try {
                         var response = JSON.parse(xhr.responseText);
                         if (response && response.error) {
                             errorMessage = response.error;
                         }
-                    } catch (e) {
+                    } catch(e) {
                         console.log("Response parse error:", e);
-                        // Check if response contains PHP error
-                        if (xhr.responseText.includes("Fatal error") ||
-                            xhr.responseText.includes("Parse error") ||
-                            xhr.responseText.includes("Warning")) {
-                            console.error("Server Error:", xhr.responseText);
-                            errorMessage = "A server error occurred. Please try again later.";
-                        }
                     }
-                } else if (status === "timeout") {
-                    errorMessage = "Request timed out. Please try again.";
-                } else if (status === "error" && !xhr.responseText) {
-                    errorMessage = "Could not connect to the server. Please check your connection.";
                 }
-
+                
                 alert_toast(errorMessage, "error");
                 end_loader();
                 form.data('submitting', false);
             },
-            success: function (resp) {
+            success: function(resp) {
                 if (resp.status === 'success') {
                     alert_toast("Order placed successfully!", "success");
-                    setTimeout(function () {
+                    setTimeout(function(){
                         location.replace('./');
                     }, 2000);
                 } else {
@@ -220,9 +182,9 @@ endwhile;
     }
 
     // Order type change handler
-    $(function () {
-        $('[name="order_type"]').change(function () {
-            if ($(this).val() == 2) {
+    $(function(){
+        $('[name="order_type"]').change(function(){
+            if($(this).val() == 2){
                 $('.address-holder').hide('slow');
             } else {
                 $('.address-holder').show('slow');
@@ -230,6 +192,6 @@ endwhile;
         });
     });
 </script>
-<?php
+<?php 
 require_once('inc/footer.php');
 ?>

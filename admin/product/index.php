@@ -89,7 +89,7 @@
 	function delete_product($id){
 		start_loader();
 		$.ajax({
-			url:_base_url_+"classes/Master.php?f=delete_product",
+			url:_base_url_+"classes/handler.php?f=delete_product",
 			method:"POST",
 			data:{id: $id},
 			dataType:"json",
@@ -100,7 +100,10 @@
 			},
 			success:function(resp){
 				if(typeof resp== 'object' && resp.status == 'success'){
-					location.reload();
+					alert_toast("Product succesfully deleted", 'success');
+                        setTimeout(function () {
+                            location.reload();
+                        }, 2000);
 				}else{
 					alert_toast("An error occured.",'error');
 					end_loader();

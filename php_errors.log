@@ -1,0 +1,5 @@
+[11-Aug-2025 22:05:54 UTC] PHP Fatal error:  Uncaught Error: Class "DBConnection" not found in /var/www/html/smart poultry farm/test_debug.php:11
+Stack trace:
+#0 {main}
+  thrown in /var/www/html/smart poultry farm/test_debug.php on line 11
+[11-Aug-2025 22:06:24 UTC] PHP Warning:  session_start(): Session cannot be started after headers have already been sent in /var/www/html/smart poultry farm/test_debug.php on line 32

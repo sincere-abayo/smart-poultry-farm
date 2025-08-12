@@ -1,0 +1,237 @@
+<script src="https://www.paypalobjects.com/api/checkout.js"></script>
+<?php
+$total = 0;
+$qry = $conn->query("SELECT c.*, p.name, i.price, p.id as pid 
+    FROM `cart` c 
+    INNER JOIN `inventory` i ON i.id = c.inventory_id 
+    INNER JOIN products p ON p.id = i.product_id 
+    WHERE c.client_id = " . $_settings->userdata('id'));
+                console.log("Payment Error Details:", {
+                    xhr: xhr,
+                    status: status,
+                    error: error,
+                    responseText: xhr.responseText,
+                    responseHeaders: xhr.getAllResponseHeaders()
+                });
+                var errorMessage = "An error occurred during payment processing";
+                
+                // Try to parse response as JSON
+                if (xhr.responseText) {
+                    try {
+                        var response = JSON.parse(xhr.responseText);
+                        if (response && response.error) {
+                            errorMessage = response.error;
+                        }
+                    } catch(e) {
+                        console.log("Response parse error:", e);
+                        errorMessage = xhr.responseText || errorMessage;
+                    }
+                }
+                
+                alert_toast(errorMessage, "error");
+                end_loader();
+                $(this).data('submitting', false);id 
+    from `cart` c 
+    inner join `inventory` i on i.id=c.inventory_id 
+    inner join products p on p.id = i.product_id 
+    where c.client_id = " . $_settings->userdata('id'));
+while ($row = $qry->fetch_assoc()):
+    $total += $row['price'] * $row['quantity'];
+endwhile;
+?>
+<section class="py-5">
+    <div class="container">
+        <div class="card rounded-0">
+            <div class="card-body">
+                <h3 class="text-center"><b>Checkout</b></h3>
+                <hr class="border-dark">
+                <form action="" id="place_order">
+                    <input type="hidden" name="amount" value="<?php echo $total ?>">
+                    <input type="hidden" name="payment_method" value="cod">
+                    <input type="hidden" name="paid" value="0">
+
+                    <div class="row row-col-1 justify-content-center">
+                        <div class="col-6">
+                            <div class="form-group col mb-0">
+                                <label class="control-label">Order Type</label>
+                            </div>
+                            <div class="form-group d-flex pl-2">
+                                <div class="custom-control custom-radio">
+                                    <input class="custom-control-input custom-control-input-primary" type="radio"
+                                        id="customRadio4" name="order_type" value="1" checked="">
+                                    <label for="customRadio4" class="custom-control-label">For Delivery</label>
+                                </div>
+                                <div class="custom-control custom-radio ml-3">
+                                    <input
+                                        class="custom-control-input custom-control-input-primary custom-control-input-outline"
+                                        type="radio" id="customRadio5" name="order_type" value="2">
+                                    <label for="customRadio5" class="custom-control-label">For Pick up</label>
+                                </div>
+                            </div>
+                            <div class="form-group col address-holder">
+                                <label class="control-label">Delivery Address</label>
+                                <textarea cols="30" rows="3" name="delivery_address" class="form-control"
+                                    style="resize:none"><?php echo $_settings->userdata('default_delivery_address') ?></textarea>
+                            </div>
+                            <div class="col">
+                                <h4><b>Total:</b> <?php echo number_format($total) ?></h4>
+                            </div>
+                            <hr>
+                            <div class="col my-3">
+                                <h4 class="text-muted">Payment Method</h4>
+                                <div class="d-flex flex-column">
+                                    <button type="submit" class="btn btn-flat btn-dark mb-2" onclick="setCOD()">Cash on
+                                        Delivery</button>
+
+                                    <div class="mb-2">
+                                        <label for="momo_number">Enter MoMo Number</label>
+                                        <input type="text" name="momo_number" id="momo_number" class="form-control"
+                                            placeholder="07XXXXXXXX" />
+                                        <button type="button" class="btn btn-success mt-2" onclick="payWithMomo()">Pay
+                                            with MoMo</button>
+                                    </div>
+
+                                    <div id="paypal-button" class="mt-3"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    paypal.Button.render({
+        env: 'sandbox',
+        client: {
+            sandbox: 'AdDNu0ZwC3bqzdjiiQlmQ4BRJsOarwyMVD_L4YQPrQm4ASuBg4bV5ZoH-uveg8K_l9JLCmipuiKt4fxn'
+        },
+        commit: true,
+        style: {
+            color: 'blue',
+            size: 'small'
+        },
+        payment: function (data, actions) {
+            return actions.payment.create({
+                payment: {
+                    transactions: [
+                        {
+                            amount: {
+                                total: '<?php echo $total; ?>',
+                                currency: 'PHP'
+                            }
+                        }
+                    ]
+                }
+            });
+        },
+        onAuthorize: function (data, actions) {
+            return actions.payment.execute().then(function (payment) {
+                payment_online()
+            });
+        }
+    }, '#paypal-button');
+
+    function payment_online() {
+        $('[name="payment_method"]').val("Online Payment")
+        $('[name="paid"]').val(1)
+        $('#place_order').submit()
+    }
+
+    function setCOD() {
+        $('[name="payment_method"]').val("cod")
+        $('[name="paid"]').val(0)
+    }
+
+    function payWithMomo() {
+        var momo_number = $('#momo_number').val().trim();
+        if (momo_number == '' || !/^07\d{8}$/.test(momo_number)) {
+            alert_toast("Please enter a valid MTN number (e.g., 07XXXXXXXX)", "warning")
+            return;
+        }
+
+        start_loader();
+        // Set payment method to MoMo
+        $('[name="payment_method"]').val("MoMoPay");
+        $('[name="paid"]').val(1);
+
+        // Submit the form with MOMO payment
+        $.ajax({
+            url: 'classes/Master.php?f=place_order',
+            method: 'POST',
+            data: $('#place_order').serialize() + '&momo_number=' + momo_number,
+            dataType: "json",
+            error: function (xhr, status, error) {
+                console.log("Payment Error:", { xhr: xhr, status: status, error: error });
+                var errorMessage = "An error occurred during payment processing";
+                try {
+                    var response = JSON.parse(xhr.responseText);
+                    if (response && response.error) {
+                        errorMessage = response.error;
+                    }
+                } catch (e) { }
+                alert_toast(errorMessage, "error");
+                end_loader();
+            },
+            success: function (resp) {
+                if (resp.status == 'success') {
+                    alert_toast("Payment successful! Your order has been placed.", "success");
+                    setTimeout(function () {
+                        location.replace('./');
+                    }, 2000);
+                } else {
+                    console.log(resp);
+                    alert_toast(resp.error || "Payment failed. Please try again.", "error");
+                    end_loader();
+                }
+            }
+        });
+    }
+
+    $(function () {
+        $('[name="order_type"]').change(function () {
+            if ($(this).val() == 2) {
+                $('.address-holder').hide('slow')
+            } else {
+                $('.address-holder').show('slow')
+            }
+        })
+
+        $('#place_order').submit(function (e) {
+            e.preventDefault();
+
+            // Prevent double submission
+            if ($(this).data('submitting')) return false;
+            $(this).data('submitting', true);
+
+            start_loader();
+            $.ajax({
+                url: 'classes/Master.php?f=place_order',
+                method: 'POST',
+                data: $(this).serialize(),
+                dataType: "json",
+                error: err => {
+                    console.log(err);
+                    alert_toast("An error occurred during order processing", "error");
+                    end_loader();
+                    $(this).data('submitting', false);
+                },
+                success: function (resp) {
+                    if (!!resp.status && resp.status == 'success') {
+                        alert_toast("Order Successfully placed.", "success");
+                        setTimeout(function () {
+                            location.replace('./');
+                        }, 2000);
+                    } else {
+                        console.log(resp);
+                        alert_toast(resp.error || "An error occurred", "error");
+                        end_loader();
+                        $(this).data('submitting', false);
+                    }
+                }
+            })
+        })
+    })
+</script>

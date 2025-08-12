@@ -1,11 +1,16 @@
 <?php
-// require_once('sess_auth.php');
-
+if (!isset($_SESSION)) {
+  session_start();
+}
+require_once('sess_auth.php');
 ?>
 
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script>
+    var _base_url_ = '<?php echo base_url ?>';
+  </script>
   <title>
     <?php echo $_settings->info('title') != false ? $_settings->info('title') . ' | ' : '' ?><?php echo $_settings->info('name') ?>
   </title>
@@ -97,9 +102,12 @@
   <script src="<?php echo base_url ?>plugins/jquery-ui/jquery-ui.min.js"></script>
   <!-- Bootstrap 4 -->
   <script src="<?php echo base_url ?>plugins/bootstrap/js/bootstrap.bundle.min.js"></script>
+  <!-- SweetAlert2 -->
+  <script src="<?php echo base_url ?>plugins/sweetalert2/sweetalert2.min.js"></script>
+  <!-- Utility Functions -->
+  <script src="<?php echo base_url ?>assets/js/utils.js"></script>
   <!-- Custom Modal Functions -->
   <script src="<?php echo base_url ?>assets/js/modal.js"></script>
-  <!-- SweetAlert2 -->
   <script src="<?php echo base_url ?>plugins/sweetalert2/sweetalert2.min.js"></script>
   <!-- Toastr -->
   <script src="<?php echo base_url ?>plugins/toastr/toastr.min.js"></script>

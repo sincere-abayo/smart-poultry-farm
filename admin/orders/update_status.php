@@ -20,7 +20,7 @@
             e.preventDefault();
             start_loader()
             $.ajax({
-                url:_base_url_+"classes/Master.php?f=update_order_status",
+                url:_base_url_+"classes/handler.php?f=update_order_status",
                 method:"POST",
                 data:$(this).serialize(),
                 dataType:"json",
@@ -31,7 +31,8 @@
                 },
                 success:function(resp){
                     if(!!resp.status && resp.status =='success'){
-                        location.reload()
+                        alert_toast("Order status updated successfully!", "success");
+                        setTimeout(function(){ location.reload(); }, 1500);
                     }else{
                         console.log(resp)
                         alert_toast("An error occured","error")

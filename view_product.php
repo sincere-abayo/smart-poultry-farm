@@ -1,19 +1,19 @@
-<?php 
+<?php
 $products = $conn->query("SELECT p.*,b.name as bname FROM `products` p inner join brands b on p.brand_id = b.id where md5(p.id) = '{$_GET['id']}' ");
-if($products->num_rows > 0){
-    foreach($products->fetch_assoc() as $k => $v){
-        $$k= stripslashes($v);
+if ($products->num_rows > 0) {
+    foreach ($products->fetch_assoc() as $k => $v) {
+        $$k = stripslashes($v);
     }
-    $upload_path = base_app.'/uploads/product_'.$id;
+    $upload_path = base_app . '/uploads/product_' . $id;
     $img = "";
-    if(is_dir($upload_path)){
+    if (is_dir($upload_path)) {
         $fileO = scandir($upload_path);
-        if(isset($fileO[2]))
-            $img = "uploads/product_".$id."/".$fileO[2];
+        if (isset($fileO[2]))
+            $img = "uploads/product_" . $id . "/" . $fileO[2];
     }
-    $inventory = $conn->query("SELECT * FROM inventory where product_id = ".$id);
+    $inventory = $conn->query("SELECT * FROM inventory where product_id = " . $id);
     $inv = array();
-    while($ir = $inventory->fetch_assoc()){
+    while ($ir = $inventory->fetch_assoc()) {
         $inv[] = $ir;
     }
 }
@@ -22,16 +22,19 @@ if($products->num_rows > 0){
     <div class="container px-4 px-lg-5 my-5">
         <div class="row gx-4 gx-lg-5 align-items-center">
             <div class="col-md-6">
-                <img class="card-img-top mb-5 mb-md-0 border border-dark" loading="lazy" id="display-img" src="<?php echo validate_image($img) ?>" alt="..." />
+                <img class="card-img-top mb-5 mb-md-0 border border-dark" loading="lazy" id="display-img"
+                    src="<?php echo validate_image($img) ?>" alt="..." />
                 <div class="mt-2 row gx-2 gx-lg-3 row-cols-4 row-cols-md-3 row-cols-xl-4 justify-content-start">
-                    <?php 
-                        foreach($fileO as $k => $img):
-                            if(in_array($img,array('.','..')))
-                                continue;
-                    ?>
-                    <div class="col">
-                        <a href="javascript:void(0)" class="view-image <?php echo $k == 2 ? "active":'' ?>"><img src="<?php echo validate_image('uploads/product_'.$id.'/'.$img) ?>" loading="lazy"  class="img-thumbnail" alt=""></a>
-                    </div>
+                    <?php
+                    foreach ($fileO as $k => $img):
+                        if (in_array($img, array('.', '..')))
+                            continue;
+                        ?>
+                        <div class="col">
+                            <a href="javascript:void(0)" class="view-image <?php echo $k == 2 ? "active" : '' ?>"><img
+                                    src="<?php echo validate_image('uploads/product_' . $id . '/' . $img) ?>" loading="lazy"
+                                    class="img-thumbnail" alt=""></a>
+                        </div>
                     <?php endforeach; ?>
                 </div>
             </div>
@@ -39,15 +42,20 @@ if($products->num_rows > 0){
                 <h1 class="display-5 fw-bolder border-bottom border-primary pb-1"><?php echo $name ?></h1>
                 <p class="m-0"><small>Breed: <?php echo $bname ?></small></p>
                 <div class="fs-5 mb-5">
-                    Frw <span id="price"><?php echo number_format($inv[0]['price']) ?></span>
+                    <div>Unit Price: Frw <span id="unit-price"><?php echo number_format($inv[0]['price']) ?></span>
+                    </div>
+                    <div>Total Price: Frw <span id="total-price"><?php echo number_format($inv[0]['price']) ?></span>
+                    </div>
                     <br>
-                    <span><small><b>Available Stock:</b> <span id="avail"><?php echo $inv[0]['quantity'] ?></span></small></span>
+                    <span><small><b>Available Stock:</b> <span
+                                id="avail"><?php echo $inv[0]['quantity'] ?></span></small></span>
                 </div>
                 <form action="" id="add-cart">
                     <div class="d-flex">
                         <input type="hidden" name="price" value="<?php echo $inv[0]['price'] ?>">
                         <input type="hidden" name="inventory_id" value="<?php echo $inv[0]['id'] ?>">
-                        <input class="form-control text-center me-3" id="inputQuantity" type="num" value="1" style="max-width: 3rem" name="quantity" />
+                        <input class="form-control text-center me-3" id="inputQuantity" type="number" min="1"
+                            max="<?php echo $inv[0]['quantity'] ?>" value="1" style="max-width: 3rem" name="quantity" />
                         <button class="btn btn-outline-dark flex-shrink-0" type="submit">
                             <i class="bi-cart-fill me-1"></i>
                             Add to cart
@@ -65,39 +73,39 @@ if($products->num_rows > 0){
     <div class="container px-4 px-lg-5 mt-5">
         <h2 class="fw-bolder mb-4">Related products</h2>
         <div class="row gx-4 gx-lg-5 row-cols-1 row-cols-md-3 row-cols-xl-4 justify-content-center">
-        <?php 
+            <?php
             $products = $conn->query("SELECT p.*,b.name as bname FROM `products` p inner join brands b on p.brand_id = b.id where p.status = 1 and (p.category_id = '{$category_id}' or p.sub_category_id = '{$sub_category_id}') and p.id !='{$id}' order by rand() limit 4 ");
-            while($row = $products->fetch_assoc()):
-                $upload_path = base_app.'/uploads/product_'.$row['id'];
+            while ($row = $products->fetch_assoc()):
+                $upload_path = base_app . '/uploads/product_' . $row['id'];
                 $img = "";
-                if(is_dir($upload_path)){
+                if (is_dir($upload_path)) {
                     $fileO = scandir($upload_path);
-                    if(isset($fileO[2]))
-                        $img = "uploads/product_".$row['id']."/".$fileO[2];
+                    if (isset($fileO[2]))
+                        $img = "uploads/product_" . $row['id'] . "/" . $fileO[2];
                 }
-                $inventory = $conn->query("SELECT * FROM inventory where product_id = ".$row['id']);
+                $inventory = $conn->query("SELECT * FROM inventory where product_id = " . $row['id']);
                 $_inv = array();
-                foreach($row as $k=> $v){
+                foreach ($row as $k => $v) {
                     $row[$k] = trim(stripslashes($v));
                 }
-                while($ir = $inventory->fetch_assoc()){
+                while ($ir = $inventory->fetch_assoc()) {
                     $_inv[] = number_format($ir['price']);
                 }
-        ?>
-            <div class="col mb-5">
-                <a class="card h-100 product-item text-dark" href=".?p=view_product&id=<?php echo md5($row['id']) ?>">
-                    <img class="card-img-top w-100" src="<?php echo validate_image($img) ?>" alt="..." />
-                    <div class="card-body p-4">
-                        <div class="">
-                            <h5 class="fw-bolder"><?php echo $row['name'] ?></h5>
-                            <?php foreach($_inv as $k=> $v): ?>
-                                <span><b>Price: </b>Frw <?php echo $v ?></span>
-                            <?php endforeach; ?>
-                            <p class="m-0"><small>Breed: <?php echo $row['bname'] ?></small></p>
+                ?>
+                <div class="col mb-5">
+                    <a class="card h-100 product-item text-dark" href=".?p=view_product&id=<?php echo md5($row['id']) ?>">
+                        <img class="card-img-top w-100" src="<?php echo validate_image($img) ?>" alt="..." />
+                        <div class="card-body p-4">
+                            <div class="">
+                                <h5 class="fw-bolder"><?php echo $row['name'] ?></h5>
+                                <?php foreach ($_inv as $k => $v): ?>
+                                    <span><b>Price: </b>Frw <?php echo $v ?></span>
+                                <?php endforeach; ?>
+                                <p class="m-0"><small>Breed: <?php echo $row['bname'] ?></small></p>
+                            </div>
                         </div>
-                    </div>
-                </a>
-            </div>
+                    </a>
+                </div>
             <?php endwhile; ?>
         </div>
     </div>
@@ -105,48 +113,80 @@ if($products->num_rows > 0){
 
 <script>
     var inv = $.parseJSON('<?php echo json_encode($inv) ?>');
-    $(function(){
-        $('.view-image').click(function(){
+
+    // Helper function to format numbers with commas
+    function number_format(number) {
+        return number.toLocaleString('en-US');
+    }
+
+    $(function () {
+        $('.view-image').click(function () {
             var _img = $(this).find('img').attr('src');
-            $('#display-img').attr('src',_img);
+            $('#display-img').attr('src', _img);
             $('.view-image').removeClass("active")
             $(this).addClass("active")
         })
 
-        $('.p-size').click(function(){
+        $('.p-size').click(function () {
             var k = $(this).attr('data-id');
             $('.p-size').removeClass("active")
             $(this).addClass("active")
-            $('#price').text('FRw ' + Number(inv[k].price).toLocaleString())
+            $('#unit-price').text(Number(inv[k].price).toLocaleString())
+            $('#total-price').text(Number(inv[k].price * ($('#inputQuantity').val() || 1)).toLocaleString())
             $('[name="price"]').val(inv[k].price)
             $('#avail').text(inv[k].quantity)
             $('[name="inventory_id"]').val(inv[k].id)
         })
 
-        $('#add-cart').submit(function(e){
+        // Update price when quantity changes
+        $('#inputQuantity').on('input', function () {
+            var quantity = parseInt($(this).val()) || 0;
+            var basePrice = parseFloat($('[name="price"]').val());
+            var totalPrice = basePrice * quantity;
+            $('#total-price').text(number_format(totalPrice));
+        });
+
+        $('#add-cart').submit(function (e) {
             e.preventDefault();
-            if('<?php echo $_settings->userdata('id') ?>' <= 0){
-                uni_modal("","login.php");
+
+            // Check login status
+            if (!'<?php echo isset($_SESSION['auth_user']) || isset($_SESSION['userdata']) ?>') {
+                uni_modal("", "login.php");
                 return false;
             }
+
+            // Validate quantity
+            var quantity = parseInt($('#inputQuantity').val());
+            var available = parseInt($('#avail').text());
+
+            if (isNaN(quantity) || quantity <= 0) {
+                alert_toast("Please enter a valid quantity", 'error');
+                return false;
+            }
+
+            if (quantity > available) {
+                alert_toast("Sorry, only " + available + " item(s) are available", 'error');
+                return false;
+            }
+
             start_loader();
             $.ajax({
-                url:'classes/Master.php?f=add_to_cart',
-                data:$(this).serialize(),
-                method:'POST',
-                dataType:"json",
-                error:err=>{
+                url: _base_url_ + 'classes/handler.php?f=add_to_cart',
+                data: $(this).serialize(),
+                method: 'POST',
+                dataType: "json",
+                error: err => {
                     console.log(err)
-                    alert_toast("an error occured",'error')
+                    alert_toast("an error occured", 'error')
                     end_loader()
                 },
-                success:function(resp){
-                    if(typeof resp == 'object' && resp.status=='success'){
-                        alert_toast("Product added to cart.",'success')
+                success: function (resp) {
+                    if (typeof resp == 'object' && resp.status == 'success') {
+                        alert_toast("Product added to cart.", 'success')
                         $('#cart-count').text(resp.cart_count)
-                    }else{
+                    } else {
                         console.log(resp)
-                        alert_toast("an error occured",'error')
+                        alert_toast("an error occured", 'error')
                     }
                     end_loader();
                 }
