@@ -126,30 +126,58 @@ function printTable() {
   window.print();
 }
 
-// Inline editing
+// Inline editing with AJAX update
+function showToast(msg, type = 'success') {
+  const toast = document.createElement('div');
+  toast.className = `alert alert-${type}`;
+  toast.style.position = 'fixed';
+  toast.style.top = '20px';
+  toast.style.right = '20px';
+  toast.style.zIndex = 9999;
+  toast.innerText = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2000);
+}
 document.querySelectorAll(".editBtn").forEach(function(button){
   button.addEventListener("click", function(){
     const row = button.closest("tr");
     const id = row.getAttribute("data-id");
-    
     const title = row.querySelector(".title").innerText;
     const amount = row.querySelector(".amount").innerText;
     const desc = row.querySelector(".description").innerText;
-    
     row.innerHTML = `
-      <form method="POST" style="margin:0;">
-        <td>${row.cells[0].innerText}</td>
-        <td><input type="text" name="title" value="${title}" class="form-control" required></td>
-        <td><input type="number" step="0.01" name="amount" value="${amount}" class="form-control" required></td>
-        <td><input type="text" name="description" value="${desc}" class="form-control"></td>
-        <td>${row.cells[4].innerText}</td>
-        <td>
-          <input type="hidden" name="update_id" value="${id}">
-          <button type="submit" class="btn btn-success btn-sm">✔️ Save</button>
-          <button type="button" class="btn btn-secondary btn-sm" onclick="location.reload()">❌ Cancel</button>
-        </td>
-      </form>
+      <td>${row.cells[0].innerText}</td>
+      <td><input type="text" class="form-control" value="${title}" id="edit-title"></td>
+      <td><input type="number" step="0.01" class="form-control" value="${amount}" id="edit-amount"></td>
+      <td><input type="text" class="form-control" value="${desc}" id="edit-description"></td>
+      <td>${row.cells[4].innerText}</td>
+      <td>
+        <button type="button" class="btn btn-success btn-sm saveEditBtn">✔️ Save</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="location.reload()">❌ Cancel</button>
+      </td>
     `;
+    row.querySelector(".saveEditBtn").addEventListener("click", function(){
+      const newTitle = row.querySelector('#edit-title').value;
+      const newAmount = row.querySelector('#edit-amount').value;
+      const newDesc = row.querySelector('#edit-description').value;
+      const formData = new FormData();
+      formData.append('update_id', id);
+      formData.append('title', newTitle);
+      formData.append('amount', newAmount);
+      formData.append('description', newDesc);
+      fetch('expenses.php', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.text())
+      .then(html => {
+        showToast('Expense updated successfully!');
+        setTimeout(() => location.reload(), 1200);
+      })
+      .catch(() => {
+        showToast('Failed to update expense!', 'danger');
+      });
+    });
   });
 });
 

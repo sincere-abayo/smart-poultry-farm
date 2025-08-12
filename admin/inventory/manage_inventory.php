@@ -63,7 +63,7 @@ if(isset($_GET['id']) && $_GET['id'] > 0){
 			 $('.err-msg').remove();
 			start_loader();
 			$.ajax({
-				url:_base_url_+"classes/Master.php?f=save_inventory",
+				url:_base_url_+"classes/handler.php?f=save_inventory",
 				data: new FormData($(this)[0]),
                 cache: false,
                 contentType: false,
@@ -78,7 +78,11 @@ if(isset($_GET['id']) && $_GET['id'] > 0){
 				},
 				success:function(resp){
 					if(typeof resp =='object' && resp.status == 'success'){
-						location.href = "./?page=inventory";
+						// location.href = "./?page=inventory";
+						alert_toast(" Succesfully", 'success');
+                        setTimeout(function () {
+                            location.href = "./?page=inventory";
+                        }, 2000);
 					}else if(resp.status == 'failed' && !!resp.msg){
                         var el = $('<div>')
                             el.addClass("alert alert-danger err-msg").text(resp.msg)

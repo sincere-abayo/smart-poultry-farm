@@ -471,6 +471,70 @@ class Master extends DBConnection
         }
     }
 
+    function delete_inventory()
+    {
+        try {
+            if (!isset($_POST['id'])) {
+                throw new Exception("Missing inventory ID");
+            }
+            $id = intval($_POST['id']);
+            $stmt = $this->conn->prepare("DELETE FROM inventory WHERE id = ?");
+            $stmt->bind_param("i", $id);
+            $save = $stmt->execute();
+            $stmt->close();
+            if ($save) {
+                return json_encode([
+                    'status' => 'success',
+                    'msg' => 'Inventory deleted successfully'
+                ]);
+            } else {
+                throw new Exception($this->conn->error);
+            }
+        } catch (Exception $e) {
+            return json_encode([
+                'status' => 'failed',
+                'msg' => $e->getMessage()
+            ]);
+        }
+    }
+
+    function save_inventory()
+    {
+        try {
+            if (!isset($_POST['product_id']) || !isset($_POST['price']) || !isset($_POST['quantity'])) {
+                throw new Exception("Missing required fields");
+            }
+            $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+            $product_id = intval($_POST['product_id']);
+            $price = floatval($_POST['price']);
+            $quantity = intval($_POST['quantity']);
+            if ($id > 0) {
+                $stmt = $this->conn->prepare("UPDATE inventory SET product_id=?, price=?, quantity=? WHERE id=?");
+                $stmt->bind_param("idii", $product_id, $price, $quantity, $id);
+                $save = $stmt->execute();
+                $stmt->close();
+            } else {
+                $stmt = $this->conn->prepare("INSERT INTO inventory (product_id, price, quantity) VALUES (?, ?, ?)");
+                $stmt->bind_param("idi", $product_id, $price, $quantity);
+                $save = $stmt->execute();
+                $stmt->close();
+            }
+            if ($save) {
+                return json_encode([
+                    'status' => 'success',
+                    'msg' => 'Inventory saved successfully'
+                ]);
+            } else {
+                throw new Exception($this->conn->error);
+            }
+        } catch (Exception $e) {
+            return json_encode([
+                'status' => 'failed',
+                'msg' => $e->getMessage()
+            ]);
+        }
+    }
+
     function delete_product()
     {
         try {
@@ -529,11 +593,13 @@ class Master extends DBConnection
             $specs = isset($_POST['specs']) ? trim($_POST['specs']) : '';
             $status = isset($_POST['status']) ? intval($_POST['status']) : 1;
             $price = isset($_POST['price']) ? floatval($_POST['price']) : 0;
+            $quantity = isset($_POST['quantity']) ? floatval($_POST['quantity']) : 0;
+            $sub_category_id = isset($_POST['sub_category_id']) ? intval($_POST['sub_category_id']) : null;
 
             // If updating
             if ($id > 0) {
-                $stmt = $this->conn->prepare("UPDATE products SET name=?, brand_id=?, category_id=?, specs=?, status=? WHERE id=?");
-                $stmt->bind_param("siisii", $name, $brand_id, $category_id, $specs, $status, $id);
+                $stmt = $this->conn->prepare("UPDATE products SET name=?, brand_id=?, category_id=?, sub_category_id=?, specs=?, status=? WHERE id=?");
+                $stmt->bind_param("siiisii", $name, $brand_id, $category_id, $sub_category_id, $specs, $status, $id);
                 $save = $stmt->execute();
                 $stmt->close();
                 // Update price in inventory
@@ -543,14 +609,14 @@ class Master extends DBConnection
                 $stmt->close();
             } else {
                 // Insert new product
-                $stmt = $this->conn->prepare("INSERT INTO products (name, brand_id, category_id, specs, status) VALUES (?, ?, ?, ?, ?)");
-                $stmt->bind_param("siisi", $name, $brand_id, $category_id, $specs, $status);
+                $stmt = $this->conn->prepare("INSERT INTO products (name, brand_id, category_id, sub_category_id, specs, status) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param("siiisi", $name, $brand_id, $category_id, $sub_category_id, $specs, $status);
                 $save = $stmt->execute();
                 $new_id = $this->conn->insert_id;
                 $stmt->close();
                 // Insert inventory
-                $stmt = $this->conn->prepare("INSERT INTO inventory (product_id, price) VALUES (?, ?)");
-                $stmt->bind_param("id", $new_id, $price);
+                $stmt = $this->conn->prepare("INSERT INTO inventory (product_id, price, quantity) VALUES (?, ?, ?)");
+                $stmt->bind_param("idd", $new_id, $price, $quantity);
                 $stmt->execute();
                 $stmt->close();
                 $id = $new_id;

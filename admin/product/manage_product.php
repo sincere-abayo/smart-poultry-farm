@@ -39,6 +39,18 @@ if(isset($_GET['id']) && $_GET['id'] > 0){
                     <?php endwhile; ?>
                 </select>
 			</div>
+            <div class="form-group">
+                <label for="sub_category_id" class="control-label">Sub Category</label>
+                <select name="sub_category_id" id="sub_category_id" class="custom-select select2" required>
+                    <option value=""></option>
+                    <?php
+                        $qry = $conn->query("SELECT * FROM `sub_categories` order by sub_category asc");
+                        while($row= $qry->fetch_assoc()):
+                    ?>
+                    <option value="<?php echo $row['id'] ?>" <?php echo isset($sub_category_id) && $sub_category_id == $row['id'] ? 'selected' : '' ?>><?php echo $row['sub_category'] ?></option>
+                    <?php endwhile; ?>
+                </select>
+            </div>
 			<div class="form-group">
 				<label for="name" class="control-label">Product Name</label>
                 <input type="text" name="name" id="name" class="form-control rounded-0" required value="<?php echo isset($name) ? $name : '' ?>" />
@@ -48,6 +60,10 @@ if(isset($_GET['id']) && $_GET['id'] > 0){
                 <textarea name="specs" cols="30" rows="2" class="form-control no-resize summernote"><?php echo isset($specs) ? $specs : ''; ?></textarea>
 			</div>
             <div class="form-group">
+                <label for="quantity" class="control-label">Quantity</label>
+                <input type="number" step="0.01" min="0" name="quantity" id="quantity" class="form-control rounded-0" required value="<?php echo isset($id) ? (isset($conn) ? ($conn->query("SELECT price FROM inventory WHERE product_id = '{$id}'")->fetch_assoc()['price'] ?? '') : '') : '' ?>" />
+            </div>
+              <div class="form-group">
                 <label for="price" class="control-label">Price</label>
                 <input type="number" step="0.01" min="0" name="price" id="price" class="form-control rounded-0" required value="<?php echo isset($id) ? (isset($conn) ? ($conn->query("SELECT price FROM inventory WHERE product_id = '{$id}'")->fetch_assoc()['price'] ?? '') : '') : '' ?>" />
             </div>
