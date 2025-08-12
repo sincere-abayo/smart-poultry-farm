@@ -92,7 +92,7 @@
 	function delete_category($id){
 		start_loader();
 		$.ajax({
-			url:_base_url_+"classes/Master.php?f=delete_category",
+			url:_base_url_+"classes/handler.php?f=delete_category",
 			method:"POST",
 			data:{id: $id},
 			dataType:"json",
@@ -103,7 +103,8 @@
 			},
 			success:function(resp){
 				if(typeof resp== 'object' && resp.status == 'success'){
-					location.reload();
+					alert_toast("saved!", "success");
+					setTimeout(function(){ location.reload(); }, 1500);
 				}else{
 					alert_toast("An error occured.",'error');
 					end_loader();

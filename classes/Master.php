@@ -471,6 +471,130 @@ class Master extends DBConnection
         }
     }
 
+    function save_category()
+    {
+        try {
+            $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+            $category = isset($_POST['category']) ? trim($_POST['category']) : '';
+            $description = isset($_POST['description']) ? trim($_POST['description']) : '';
+            $status = isset($_POST['status']) ? intval($_POST['status']) : 1;
+            if (!$category) throw new Exception("Category name is required");
+            if ($id > 0) {
+                $stmt = $this->conn->prepare("UPDATE categories SET category=?, description=?, status=? WHERE id=?");
+                $stmt->bind_param("ssii", $category, $description, $status, $id);
+                $save = $stmt->execute();
+                $stmt->close();
+            } else {
+                $stmt = $this->conn->prepare("INSERT INTO categories (category, description, status) VALUES (?, ?, ?)");
+                $stmt->bind_param("ssi", $category, $description, $status);
+                $save = $stmt->execute();
+                $stmt->close();
+            }
+            if ($save) {
+                return json_encode([
+                    'status' => 'success',
+                    'msg' => 'Category saved successfully'
+                ]);
+            } else {
+                throw new Exception($this->conn->error);
+            }
+        } catch (Exception $e) {
+            return json_encode([
+                'status' => 'failed',
+                'msg' => $e->getMessage()
+            ]);
+        }
+    }
+
+    function delete_category()
+    {
+        try {
+            if (!isset($_POST['id'])) {
+                throw new Exception("Missing category ID");
+            }
+            $id = intval($_POST['id']);
+            $stmt = $this->conn->prepare("DELETE FROM categories WHERE id = ?");
+            $stmt->bind_param("i", $id);
+            $save = $stmt->execute();
+            $stmt->close();
+            if ($save) {
+                return json_encode([
+                    'status' => 'success',
+                    'msg' => 'Category deleted successfully'
+                ]);
+            } else {
+                throw new Exception($this->conn->error);
+            }
+        } catch (Exception $e) {
+            return json_encode([
+                'status' => 'failed',
+                'msg' => $e->getMessage()
+            ]);
+        }
+    }
+
+    function delete_brand()
+    {
+        try {
+            if (!isset($_POST['id'])) {
+                throw new Exception("Missing brand ID");
+            }
+            $id = intval($_POST['id']);
+            $stmt = $this->conn->prepare("DELETE FROM brands WHERE id = ?");
+            $stmt->bind_param("i", $id);
+            $save = $stmt->execute();
+            $stmt->close();
+            if ($save) {
+                return json_encode([
+                    'status' => 'success',
+                    'msg' => 'Brand deleted successfully'
+                ]);
+            } else {
+                throw new Exception($this->conn->error);
+            }
+        } catch (Exception $e) {
+            return json_encode([
+                'status' => 'failed',
+                'msg' => $e->getMessage()
+            ]);
+        }
+    }
+
+    function save_brand()
+    {
+        try {
+            $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
+            $name = isset($_POST['name']) ? trim($_POST['name']) : '';
+            $description = isset($_POST['description']) ? trim($_POST['description']) : '';
+            $status = isset($_POST['status']) ? intval($_POST['status']) : 1;
+            if (!$name) throw new Exception("Brand name is required");
+            if ($id > 0) {
+                $stmt = $this->conn->prepare("UPDATE brands SET name=?, description=?, status=? WHERE id=?");
+                $stmt->bind_param("ssii", $name, $description, $status, $id);
+                $save = $stmt->execute();
+                $stmt->close();
+            } else {
+                $stmt = $this->conn->prepare("INSERT INTO brands (name, description, status) VALUES (?, ?, ?)");
+                $stmt->bind_param("ssi", $name, $description, $status);
+                $save = $stmt->execute();
+                $stmt->close();
+            }
+            if ($save) {
+                return json_encode([
+                    'status' => 'success',
+                    'msg' => 'Brand saved successfully'
+                ]);
+            } else {
+                throw new Exception($this->conn->error);
+            }
+        } catch (Exception $e) {
+            return json_encode([
+                'status' => 'failed',
+                'msg' => $e->getMessage()
+            ]);
+        }
+    }
+
     function delete_inventory()
     {
         try {

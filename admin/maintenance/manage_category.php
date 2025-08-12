@@ -39,7 +39,7 @@ if(isset($_GET['id']) && $_GET['id'] > 0){
 			 $('.err-msg').remove();
 			start_loader();
 			$.ajax({
-				url:_base_url_+"classes/Master.php?f=save_category",
+				url:_base_url_+"classes/handler.php?f=save_category",
 				data: new FormData($(this)[0]),
                 cache: false,
                 contentType: false,
@@ -54,7 +54,8 @@ if(isset($_GET['id']) && $_GET['id'] > 0){
 				},
 				success:function(resp){
 					if(typeof resp =='object' && resp.status == 'success'){
-						location.reload()
+						alert_toast("saved!", "success");
+					setTimeout(function(){ location.reload(); }, 1500);
 					}else if(resp.status == 'failed' && !!resp.msg){
                         var el = $('<div>')
                             el.addClass("alert alert-danger err-msg").text(resp.msg)
