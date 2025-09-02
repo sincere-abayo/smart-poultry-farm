@@ -23,8 +23,11 @@
       <ul class="navbar-nav me-auto mb-2 mb-lg-0 ms-lg-4">
         <li class="nav-item"><a class="nav-link" aria-current="page" href="./">Home</a></li>
         <?php
-        $cat_qry = $conn->query("SELECT * FROM categories where status = 1  limit 3");
-        $count_cats = $conn->query("SELECT * FROM categories where status = 1 ")->num_rows;
+        // Exclude specific categories from header navigation
+        $excluded_categories = ['Kuroiler Egg', 'Kuroiler Chicken', 'Sasso Egg', 'Sasso Chicken'];
+        $excluded_condition = " AND category NOT IN ('" . implode("', '", $excluded_categories) . "')";
+        $cat_qry = $conn->query("SELECT * FROM categories where status = 1" . $excluded_condition . " limit 3");
+        $count_cats = $conn->query("SELECT * FROM categories where status = 1" . $excluded_condition)->num_rows;
         while ($crow = $cat_qry->fetch_assoc()):
           $sub_qry = $conn->query("SELECT * FROM sub_categories where status = 1 and parent_id = '{$crow['id']}'");
           if ($sub_qry->num_rows <= 0):

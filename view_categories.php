@@ -1,25 +1,23 @@
-<?php 
+<?php
 $title = "All Product Categories";
 $sub_title = "";
-if(isset($_GET['c']) && isset($_GET['s'])){
+if (isset($_GET['c']) && isset($_GET['s'])) {
     $cat_qry = $conn->query("SELECT * FROM categories where md5(id) = '{$_GET['c']}'");
-    if($cat_qry->num_rows > 0){
+    if ($cat_qry->num_rows > 0) {
         $title = $cat_qry->fetch_assoc()['category'];
     }
- $sub_cat_qry = $conn->query("SELECT * FROM sub_categories where md5(id) = '{$_GET['s']}'");
-    if($sub_cat_qry->num_rows > 0){
+    $sub_cat_qry = $conn->query("SELECT * FROM sub_categories where md5(id) = '{$_GET['s']}'");
+    if ($sub_cat_qry->num_rows > 0) {
         $sub_title = $sub_cat_qry->fetch_assoc()['sub_category'];
     }
-}
-elseif(isset($_GET['c'])){
+} elseif (isset($_GET['c'])) {
     $cat_qry = $conn->query("SELECT * FROM categories where md5(id) = '{$_GET['c']}'");
-    if($cat_qry->num_rows > 0){
+    if ($cat_qry->num_rows > 0) {
         $title = $cat_qry->fetch_assoc()['category'];
     }
-}
-elseif(isset($_GET['s'])){
+} elseif (isset($_GET['s'])) {
     $sub_cat_qry = $conn->query("SELECT * FROM sub_categories where md5(id) = '{$_GET['s']}'");
-    if($sub_cat_qry->num_rows > 0){
+    if ($sub_cat_qry->num_rows > 0) {
         $title = $sub_cat_qry->fetch_assoc()['sub_category'];
     }
 }
@@ -37,16 +35,19 @@ elseif(isset($_GET['s'])){
 <section class="py-5">
     <div class="container px-4 px-lg-5 mt-5">
         <div class="row gx-2 gx-lg-5 row-cols-1 row-cols-md-2 row-cols-xl-2 justify-content-center">
-           
-            <?php 
-                $whereData = "";
-                $categories = $conn->query("SELECT * FROM `categories` where status = 1 order by category asc ");
-                while($row = $categories->fetch_assoc()):
-                    foreach($row as $k=> $v){
-                        $row[$k] = trim(stripslashes($v));
-                    }
-                    $row['description'] = strip_tags(stripslashes(html_entity_decode($row['description'])));
-            ?>
+
+            <?php
+            $whereData = "";
+            // Exclude specific categories from display
+            $excluded_categories = ['Kuroiler Egg', 'Kuroiler Chicken', 'Sasso Egg', 'Sasso Chicken'];
+            $excluded_condition = " AND category NOT IN ('" . implode("', '", $excluded_categories) . "')";
+            $categories = $conn->query("SELECT * FROM `categories` where status = 1" . $excluded_condition . " order by category asc ");
+            while ($row = $categories->fetch_assoc()):
+                foreach ($row as $k => $v) {
+                    $row[$k] = trim(stripslashes($v));
+                }
+                $row['description'] = strip_tags(stripslashes(html_entity_decode($row['description'])));
+                ?>
             <div class="col mb-6 mb-2">
                 <a href="./?p=products&c=<?php echo md5($row['id']) ?>" class="card category-item text-dark">
                     <div class="card-body p-4">
