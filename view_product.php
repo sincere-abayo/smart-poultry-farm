@@ -18,61 +18,230 @@ if ($products->num_rows > 0) {
     }
 }
 ?>
+<style>
+    .product-detail {
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        margin-bottom: var(--spacing-xxl);
+    }
+
+    .product-gallery {
+        position: relative;
+    }
+
+    .main-image {
+        width: 100%;
+        height: 500px;
+        object-fit: cover;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-md);
+    }
+
+    .thumbnail-gallery {
+        display: flex;
+        gap: var(--spacing-sm);
+        margin-top: var(--spacing-md);
+        overflow-x: auto;
+        padding: var(--spacing-sm) 0;
+    }
+
+    .thumbnail {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: var(--radius-sm);
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: all var(--transition-fast);
+    }
+
+    .thumbnail:hover,
+    .thumbnail.active {
+        border-color: var(--primary-color);
+        transform: scale(1.05);
+    }
+
+    .product-info {
+        padding: var(--spacing-xl);
+    }
+
+    .product-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--black);
+        margin-bottom: var(--spacing-md);
+        line-height: 1.2;
+    }
+
+    .product-breed {
+        color: var(--medium-gray);
+        font-size: 1.125rem;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .price-section {
+        background: var(--light-gray);
+        padding: var(--spacing-lg);
+        border-radius: var(--radius-md);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .price-label {
+        font-size: 0.875rem;
+        color: var(--medium-gray);
+        margin-bottom: var(--spacing-xs);
+    }
+
+    .price-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+    }
+
+    .stock-info {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-sm);
+        margin-bottom: var(--spacing-lg);
+        padding: var(--spacing-sm) var(--spacing-md);
+        background: rgba(40, 167, 69, 0.1);
+        border-radius: var(--radius-sm);
+        color: var(--success);
+    }
+
+    .quantity-section {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .quantity-input {
+        width: 80px;
+        text-align: center;
+        border: 2px solid var(--light-gray);
+        border-radius: var(--radius-sm);
+        padding: var(--spacing-sm);
+        font-weight: 600;
+    }
+
+    .add-to-cart-btn {
+        flex: 1;
+        padding: var(--spacing-md) var(--spacing-lg);
+        font-size: 1.125rem;
+        font-weight: 600;
+    }
+
+    .product-description {
+        background: var(--light-gray);
+        padding: var(--spacing-lg);
+        border-radius: var(--radius-md);
+        margin-top: var(--spacing-lg);
+    }
+
+    .related-products {
+        margin-top: var(--spacing-xxl);
+    }
+
+    @media (max-width: 768px) {
+        .product-title {
+            font-size: 2rem;
+        }
+
+        .main-image {
+            height: 300px;
+        }
+
+        .product-info {
+            padding: var(--spacing-lg);
+        }
+
+        .quantity-section {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .add-to-cart-btn {
+            width: 100%;
+        }
+    }
+</style>
+
 <section class="py-5">
-    <div class="container px-4 px-lg-5 my-5">
-        <div class="row gx-4 gx-lg-5 align-items-center">
-            <div class="col-md-6">
-                <img class="card-img-top mb-5 mb-md-0 border border-dark" loading="lazy" id="display-img"
-                    src="<?php echo validate_image($img) ?>" alt="..." />
-                <div class="mt-2 row gx-2 gx-lg-3 row-cols-4 row-cols-md-3 row-cols-xl-4 justify-content-start">
-                    <?php
-                    foreach ($fileO as $k => $img):
-                        if (in_array($img, array('.', '..')))
-                            continue;
-                        ?>
-                        <div class="col">
-                            <a href="javascript:void(0)" class="view-image <?php echo $k == 2 ? "active" : '' ?>"><img
-                                    src="<?php echo validate_image('uploads/product_' . $id . '/' . $img) ?>" loading="lazy"
-                                    class="img-thumbnail" alt=""></a>
+    <div class="container">
+        <div class="product-detail">
+            <div class="row g-0">
+                <div class="col-lg-6">
+                    <div class="product-gallery p-4">
+                        <img class="main-image" id="display-img" src="<?php echo validate_image($img) ?>"
+                            alt="<?php echo $name ?>" />
+                        <div class="thumbnail-gallery">
+                            <?php
+                            foreach ($fileO as $k => $img):
+                                if (in_array($img, array('.', '..')))
+                                    continue;
+                                ?>
+                                <img src="<?php echo validate_image('uploads/product_' . $id . '/' . $img) ?>"
+                                    class="thumbnail <?php echo $k == 2 ? "active" : '' ?>" alt="Product Image"
+                                    onclick="changeMainImage(this.src)" />
+                            <?php endforeach; ?>
                         </div>
-                    <?php endforeach; ?>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-6">
-                <h1 class="display-5 fw-bolder border-bottom border-primary pb-1"><?php echo $name ?></h1>
-                <p class="m-0"><small>Breed: <?php echo $bname ?></small></p>
-                <div class="fs-5 mb-5">
-                    <div>Unit Price: Frw <span id="unit-price"><?php echo number_format($inv[0]['price']) ?></span>
+                <div class="col-lg-6">
+                    <div class="product-info">
+                        <h1 class="product-title"><?php echo $name ?></h1>
+                        <p class="product-breed">Breed: <?php echo $bname ?></p>
+
+                        <div class="price-section">
+                            <div class="price-label">Unit Price</div>
+                            <div class="price-value">Frw <span
+                                    id="unit-price"><?php echo number_format($inv[0]['price']) ?></span></div>
+                        </div>
+
+                        <div class="price-section">
+                            <div class="price-label">Total Price</div>
+                            <div class="price-value">Frw <span
+                                    id="total-price"><?php echo number_format($inv[0]['price']) ?></span></div>
+                        </div>
+
+                        <div class="stock-info">
+                            <i class="fas fa-check-circle"></i>
+                            <span><strong>Available Stock:</strong> <span
+                                    id="avail"><?php echo $inv[0]['quantity'] ?></span> units</span>
+                        </div>
+
+                        <form action="" id="add-cart">
+                            <div class="quantity-section">
+                                <label for="inputQuantity" class="form-label">Quantity:</label>
+                                <input type="hidden" name="price" value="<?php echo $inv[0]['price'] ?>">
+                                <input type="hidden" name="inventory_id" value="<?php echo $inv[0]['id'] ?>">
+                                <input class="quantity-input" id="inputQuantity" type="number" min="1"
+                                    max="<?php echo $inv[0]['quantity'] ?>" value="1" name="quantity" />
+                                <button class="btn btn-primary add-to-cart-btn" type="submit">
+                                    <i class="fas fa-shopping-cart"></i> Add to Cart
+                                </button>
+                            </div>
+                        </form>
+
+                        <div class="product-description">
+                            <h5>Product Description</h5>
+                            <p><?php echo stripslashes(html_entity_decode($specs)) ?></p>
+                        </div>
                     </div>
-                    <div>Total Price: Frw <span id="total-price"><?php echo number_format($inv[0]['price']) ?></span>
-                    </div>
-                    <br>
-                    <span><small><b>Available Stock:</b> <span
-                                id="avail"><?php echo $inv[0]['quantity'] ?></span></small></span>
                 </div>
-                <form action="" id="add-cart">
-                    <div class="d-flex">
-                        <input type="hidden" name="price" value="<?php echo $inv[0]['price'] ?>">
-                        <input type="hidden" name="inventory_id" value="<?php echo $inv[0]['id'] ?>">
-                        <input class="form-control text-center me-3" id="inputQuantity" type="number" min="1"
-                            max="<?php echo $inv[0]['quantity'] ?>" value="1" style="max-width: 3rem" name="quantity" />
-                        <button class="btn btn-outline-dark flex-shrink-0" type="submit">
-                            <i class="bi-cart-fill me-1"></i>
-                            Add to cart
-                        </button>
-                    </div>
-                </form>
-                <p class="lead"><?php echo stripslashes(html_entity_decode($specs)) ?></p>
             </div>
         </div>
     </div>
 </section>
 
 <!-- Related items section-->
-<section class="py-5 bg-light">
-    <div class="container px-4 px-lg-5 mt-5">
-        <h2 class="fw-bolder mb-4">Related products</h2>
-        <div class="row gx-4 gx-lg-5 row-cols-1 row-cols-md-3 row-cols-xl-4 justify-content-center">
+<section class="related-products">
+    <div class="container">
+        <h2 class="section-title">Related Products</h2>
+        <div class="products-grid">
             <?php
             $products = $conn->query("SELECT p.*,b.name as bname FROM `products` p inner join brands b on p.brand_id = b.id where p.status = 1 and (p.category_id = '{$category_id}' or p.sub_category_id = '{$sub_category_id}') and p.id !='{$id}' order by rand() limit 4 ");
             while ($row = $products->fetch_assoc()):
@@ -92,16 +261,20 @@ if ($products->num_rows > 0) {
                     $_inv[] = number_format($ir['price']);
                 }
                 ?>
-                <div class="col mb-5">
-                    <a class="card h-100 product-item text-dark" href=".?p=view_product&id=<?php echo md5($row['id']) ?>">
-                        <img class="card-img-top w-100" src="<?php echo validate_image($img) ?>" alt="..." />
-                        <div class="card-body p-4">
-                            <div class="">
-                                <h5 class="fw-bolder"><?php echo $row['name'] ?></h5>
+                <div class="product-card">
+                    <a href=".?p=view_product&id=<?php echo md5($row['id']) ?>" class="text-decoration-none">
+                        <img class="card-img-top" src="<?php echo validate_image($img) ?>"
+                            alt="<?php echo $row['name'] ?>" />
+                        <div class="card-body">
+                            <h5 class="card-title"><?php echo $row['name'] ?></h5>
+                            <p class="card-text">Breed: <?php echo $row['bname'] ?></p>
+                            <div class="price">
                                 <?php foreach ($_inv as $k => $v): ?>
-                                    <span><b>Price: </b>Frw <?php echo $v ?></span>
+                                    Frw <?php echo $v ?>
                                 <?php endforeach; ?>
-                                <p class="m-0"><small>Breed: <?php echo $row['bname'] ?></small></p>
+                            </div>
+                            <div class="btn btn-primary btn-sm w-100">
+                                <i class="fas fa-eye"></i> View Details
                             </div>
                         </div>
                     </a>
@@ -117,6 +290,13 @@ if ($products->num_rows > 0) {
     // Helper function to format numbers with commas
     function number_format(number) {
         return number.toLocaleString('en-US');
+    }
+
+    // Function to change main image
+    function changeMainImage(src) {
+        $('#display-img').attr('src', src);
+        $('.thumbnail').removeClass("active");
+        event.target.classList.add("active");
     }
 
     $(function () {

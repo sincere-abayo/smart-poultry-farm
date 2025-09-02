@@ -15,8 +15,12 @@ require_once('sess_auth.php');
     <?php echo $_settings->info('title') != false ? $_settings->info('title') . ' | ' : '' ?><?php echo $_settings->info('name') ?>
   </title>
   <link rel="icon" href="<?php echo validate_image($_settings->info('logo')) ?>" />
-  <!-- Google Font: Source Sans Pro -->
-  <!-- <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&amp;display=fallback"> -->
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Roboto:wght@300;400;500;700&display=swap"
+    rel="stylesheet">
   <!-- Font Awesome -->
   <link rel="stylesheet" href="<?php echo base_url ?>plugins/fontawesome-free/css/all.min.css">
   <!-- Bootstrap CSS -->
@@ -41,6 +45,7 @@ require_once('sess_auth.php');
   <link rel="stylesheet" href="<?php echo base_url ?>dist/css/adminlte.css">
   <link rel="stylesheet" href="<?php echo base_url ?>dist/css/custom.css">
   <link rel="stylesheet" href="<?php echo base_url ?>assets/css/styles.css">
+  <link rel="stylesheet" href="<?php echo base_url ?>assets/css/modern-theme.css">
   <link rel="stylesheet" href="<?php echo base_url ?>assets/css/preloader.css">
   <!-- overlayScrollbars -->
   <link rel="stylesheet" href="<?php echo base_url ?>plugins/overlayScrollbars/css/OverlayScrollbars.min.css">
