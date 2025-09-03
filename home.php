@@ -10,6 +10,13 @@
     justify-content: center;
 }
 
+.hero-section .container {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .hero-carousel {
     position: absolute;
     top: 0;
