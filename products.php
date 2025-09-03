@@ -241,3 +241,5 @@ if (isset($_GET['c']) && isset($_GET['s'])) {
         </div>
     </div>
 </section>
+
+<?php include 'inc/footer.php' ?>

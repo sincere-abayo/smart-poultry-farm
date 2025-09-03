@@ -48,18 +48,20 @@ if (isset($_GET['c']) && isset($_GET['s'])) {
                 }
                 $row['description'] = strip_tags(stripslashes(html_entity_decode($row['description'])));
                 ?>
-            <div class="col mb-6 mb-2">
-                <a href="./?p=products&c=<?php echo md5($row['id']) ?>" class="card category-item text-dark">
-                    <div class="card-body p-4">
-                        <div class="">
-                            <!-- Product name-->
-                            <h5 class="fw-bolder border-bottom border-primary"><?php echo $row['category'] ?></h5>
+                <div class="col mb-6 mb-2">
+                    <a href="./?p=products&c=<?php echo md5($row['id']) ?>" class="card category-item text-dark">
+                        <div class="card-body p-4">
+                            <div class="">
+                                <!-- Product name-->
+                                <h5 class="fw-bolder border-bottom border-primary"><?php echo $row['category'] ?></h5>
+                            </div>
+                            <p class="m-0 truncate"><?php echo $row['description'] ?></p>
                         </div>
-                        <p class="m-0 truncate"><?php echo $row['description'] ?></p>
-                    </div>
-                </a>
-            </div>
+                    </a>
+                </div>
             <?php endwhile; ?>
         </div>
     </div>
 </section>
+
+<?php include 'inc/footer.php' ?>

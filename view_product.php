@@ -544,3 +544,5 @@ if ($products->num_rows > 0) {
         })
     })
 </script>
+
+<?php include 'inc/footer.php' ?>
