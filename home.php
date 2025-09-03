@@ -2,8 +2,8 @@
 /* Modern Homepage Styles */
 .hero-section {
     position: relative;
-    height: 100vh;
-    min-height: 600px;
+    height: 50vh;
+    min-height: 300px;
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -20,8 +20,8 @@
 }
 
 .hero-carousel .carousel-item {
-    height: 100vh;
-    min-height: 600px;
+    height: 50vh;
+    min-height: 300px;
 }
 
 .hero-carousel .carousel-item img {
@@ -237,13 +237,13 @@
 
 @media (max-width: 768px) {
     .hero-section {
-        height: 80vh;
-        min-height: 500px;
+        height: 50vh;
+        min-height: 250px;
     }
-
+    
     .hero-carousel .carousel-item {
-        height: 80vh;
-        min-height: 500px;
+        height: 50vh;
+        min-height: 250px;
     }
 
     .hero-title {
@@ -295,13 +295,13 @@
 
 @media (max-width: 576px) {
     .hero-section {
-        height: 70vh;
-        min-height: 400px;
+        height: 50vh;
+        min-height: 200px;
     }
-
+    
     .hero-carousel .carousel-item {
-        height: 70vh;
-        min-height: 400px;
+        height: 50vh;
+        min-height: 200px;
     }
 
     .hero-title {
