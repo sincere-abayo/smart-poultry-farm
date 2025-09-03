@@ -143,11 +143,157 @@ if ($products->num_rows > 0) {
 
     .related-products {
         margin-top: var(--spacing-xxl);
+        padding: var(--spacing-xxl) 0;
+        background: var(--light-gray);
+    }
+
+    .related-products .section-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        text-align: center;
+        margin-bottom: var(--spacing-xxl);
+        color: var(--black);
+        position: relative;
+    }
+
+    .related-products .section-title:after {
+        content: '';
+        position: absolute;
+        bottom: -15px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        border-radius: 2px;
+    }
+
+    .related-products .products-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: var(--spacing-xl);
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .related-products .product-card {
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        overflow: hidden;
+        transition: all var(--transition-normal);
+        position: relative;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        max-width: 320px;
+        margin: 0 auto;
+    }
+
+    .related-products .product-card:hover {
+        box-shadow: var(--shadow-lg);
+        transform: translateY(-8px);
+    }
+
+    .related-products .product-card .card-img-top {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        transition: transform var(--transition-normal);
+    }
+
+    .related-products .product-card:hover .card-img-top {
+        transform: scale(1.05);
+    }
+
+    .related-products .product-card .card-body {
+        padding: var(--spacing-lg);
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .related-products .product-card .card-title {
+        font-size: 1.125rem;
+        font-weight: 600;
+        margin-bottom: var(--spacing-sm);
+        color: var(--black);
+        line-height: 1.4;
+    }
+
+    .related-products .product-card .card-text {
+        color: var(--medium-gray);
+        font-size: 0.875rem;
+        margin-bottom: var(--spacing-md);
+    }
+
+    .related-products .product-card .price {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin-bottom: var(--spacing-md);
+    }
+
+    .related-products .product-card .btn {
+        margin-top: auto;
+        padding: var(--spacing-sm) var(--spacing-md);
+        font-size: 0.875rem;
+        font-weight: 600;
+    }
+
+    .no-related-products {
+        text-align: center;
+        padding: var(--spacing-xxl) var(--spacing-lg);
+        color: var(--medium-gray);
+        grid-column: 1 / -1;
+    }
+
+    .no-related-products .no-products-icon {
+        font-size: 4rem;
+        color: var(--light-gray);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .no-related-products .no-products-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: var(--spacing-sm);
+        color: var(--black);
+    }
+
+    .no-related-products .no-products-text {
+        font-size: 1rem;
+        margin-bottom: var(--spacing-lg);
     }
 
     @media (max-width: 768px) {
         .product-title {
             font-size: 2rem;
+        }
+
+        .related-products .section-title {
+            font-size: 2rem;
+        }
+
+        .related-products .products-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-lg);
+        }
+
+        .related-products .product-card {
+            max-width: 100%;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .related-products .products-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: var(--spacing-md);
+        }
+
+        .related-products .section-title {
+            font-size: 1.75rem;
         }
 
         .main-image {
@@ -157,7 +303,9 @@ if ($products->num_rows > 0) {
         .product-info {
             padding: var(--spacing-lg);
         }
+    }
 
+    @media (max-width: 576px) {
         .quantity-section {
             flex-direction: column;
             align-items: stretch;
@@ -165,6 +313,13 @@ if ($products->num_rows > 0) {
 
         .add-to-cart-btn {
             width: 100%;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .related-products .products-grid {
+            grid-template-columns: 1fr;
+            gap: var(--spacing-sm);
         }
     }
 </style>
@@ -244,7 +399,9 @@ if ($products->num_rows > 0) {
         <div class="products-grid">
             <?php
             $products = $conn->query("SELECT p.*,b.name as bname FROM `products` p inner join brands b on p.brand_id = b.id where p.status = 1 and (p.category_id = '{$category_id}' or p.sub_category_id = '{$sub_category_id}') and p.id !='{$id}' order by rand() limit 4 ");
+            $has_products = false;
             while ($row = $products->fetch_assoc()):
+                $has_products = true;
                 $upload_path = base_app . '/uploads/product_' . $row['id'];
                 $img = "";
                 if (is_dir($upload_path)) {
@@ -280,6 +437,19 @@ if ($products->num_rows > 0) {
                     </a>
                 </div>
             <?php endwhile; ?>
+
+            <?php if (!$has_products): ?>
+                <div class="no-related-products">
+                    <div class="no-products-icon">
+                        <i class="fas fa-box-open"></i>
+                    </div>
+                    <h3 class="no-products-title">No Related Products Found</h3>
+                    <p class="no-products-text">We couldn't find any related products at the moment.</p>
+                    <a href="./?p=products" class="btn btn-primary">
+                        <i class="fas fa-shopping-bag"></i> Browse All Products
+                    </a>
+                </div>
+            <?php endif; ?>
         </div>
     </div>
 </section>
