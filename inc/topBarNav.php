@@ -60,6 +60,9 @@
           <button class="btn btn-outline-primary me-2" id="login-btn" type="button">
             <i class="fas fa-sign-in-alt"></i> Login
           </button>
+          <button class="btn btn-primary me-2" id="register-btn" type="button">
+            <i class="fas fa-user-plus"></i> Register
+          </button>
         <?php else: ?>
           <a class="nav-link me-3" href="./?p=cart">
             <i class="fas fa-shopping-cart"></i>
@@ -97,6 +100,9 @@
   $(function () {
     $('#login-btn').click(function () {
       uni_modal("", "login.php")
+    })
+    $('#register-btn').click(function () {
+      uni_modal("", "registration.php")
     })
     $('#navbarResponsive').on('show.bs.collapse', function () {
       $('#mainNav').addClass('navbar-shrink')
