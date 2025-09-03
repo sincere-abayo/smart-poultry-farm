@@ -164,48 +164,7 @@
     width: 100%;
 }
 
-.filter-sidebar {
-    background: var(--white);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-    padding: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
-    position: sticky;
-    top: var(--spacing-lg);
-}
 
-.filter-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: var(--spacing-lg);
-    color: var(--primary-color);
-    border-bottom: 2px solid var(--light-gray);
-    padding-bottom: var(--spacing-sm);
-}
-
-.filter-item {
-    padding: var(--spacing-sm) 0;
-    border-bottom: 1px solid var(--light-gray);
-}
-
-.filter-item:last-child {
-    border-bottom: none;
-}
-
-.filter-item label {
-    font-weight: 500;
-    color: var(--dark-gray);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-}
-
-.filter-item input[type="checkbox"] {
-    width: 18px;
-    height: 18px;
-    accent-color: var(--primary-color);
-}
 
 .products-grid {
     display: grid;
@@ -240,7 +199,7 @@
         height: 50vh;
         min-height: 250px;
     }
-    
+
     .hero-carousel .carousel-item {
         height: 50vh;
         min-height: 250px;
@@ -287,10 +246,7 @@
         gap: var(--spacing-md);
     }
 
-    .filter-sidebar {
-        position: static;
-        margin-bottom: var(--spacing-md);
-    }
+
 }
 
 @media (max-width: 576px) {
@@ -298,7 +254,7 @@
         height: 50vh;
         min-height: 200px;
     }
-    
+
     .hero-carousel .carousel-item {
         height: 50vh;
         min-height: 200px;
@@ -462,36 +418,8 @@ $brands = isset($_GET['b']) ? json_decode(urldecode($_GET['b'])) : array();
 <section class="py-5" id="products">
     <div class="container">
         <div class="row">
-            <!-- Filter Sidebar -->
-            <div class="col-lg-3">
-                <div class="filter-sidebar">
-                    <h4 class="filter-title">
-                        <i class="fas fa-filter"></i> Filter by Breed
-                    </h4>
-                    <div class="filter-item">
-                        <label for="brandAll">
-                            <input type="checkbox" id="brandAll">
-                            <span>All Breeds</span>
-                        </label>
-                    </div>
-                    <?php
-                    $qry = $conn->query("SELECT * FROM brands where status =1 order by name asc");
-                    while ($row = $qry->fetch_assoc()):
-                        ?>
-                    <div class="filter-item">
-                        <label for="brand-item-<?php echo $row['id'] ?>">
-                            <input type="checkbox" id="brand-item-<?php echo $row['id'] ?>"
-                                <?php echo in_array($row['id'], $brands) ? "checked" : "" ?> class="brand-item"
-                                value="<?php echo $row['id'] ?>">
-                            <span><?php echo $row['name'] ?></span>
-                        </label>
-                    </div>
-                    <?php endwhile; ?>
-                </div>
-            </div>
-
             <!-- Products Section -->
-            <div class="col-lg-9">
+            <div class="col-12">
                 <!-- Products Section -->
                 <h2 class="section-title">Our Products</h2>
                 <div class="products-grid">
@@ -591,48 +519,6 @@ $(document).ready(function() {
         }
     );
 });
-
-// Product filtering functions
-function _filter() {
-    var brands = []
-    $('.brand-item:checked').each(function() {
-        brands.push($(this).val())
-    })
-    _b = JSON.stringify(brands)
-    var checked = $('.brand-item:checked').length
-    var total = $('.brand-item').length
-    if (checked == total)
-        location.href = "./?";
-    else
-        location.href = "./?b=" + encodeURI(_b);
-}
-
-function check_filter() {
-    var checked = $('.brand-item:checked').length
-    var total = $('.brand-item').length
-    if (checked == total) {
-        $('#brandAll').attr('checked', true)
-    } else {
-        $('#brandAll').attr('checked', false)
-    }
-    if ('<?php echo isset($_GET['b']) ?>' == '')
-        $('#brandAll,.brand-item').attr('checked', true)
-}
-
-$(function() {
-    check_filter()
-    $('#brandAll').change(function() {
-        if ($(this).is(':checked') == true) {
-            $('.brand-item').attr('checked', true)
-        } else {
-            $('.brand-item').attr('checked', false)
-        }
-        _filter()
-    })
-    $('.brand-item').change(function() {
-        _filter()
-    })
-})
 </script>
 
 <?php include 'inc/footer.php' ?>
