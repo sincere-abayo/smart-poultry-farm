@@ -373,6 +373,148 @@ class NotificationManager
     }
 
     /**
+     * Send admin notification for new order
+     * 
+     * @param array $orderData Order data
+     * @return array Result with success status and details
+     */
+    public function sendAdminNewOrderNotification($orderData)
+    {
+        try {
+            // Check if admin notifications are enabled
+            if (!$this->notificationService->getConfig()['admin']['notifications_enabled']) {
+                return [
+                    'success' => false,
+                    'message' => 'Admin notifications are disabled'
+                ];
+            }
+
+            $requiredFields = ['order_id', 'customer_name', 'total_amount', 'item_count', 'order_date'];
+            $this->validateRequiredFields($orderData, $requiredFields);
+
+            $templateData = [
+                'order_id' => $orderData['order_id'],
+                'customer_name' => $orderData['customer_name'],
+                'total_amount' => $orderData['total_amount'],
+                'item_count' => $orderData['item_count'],
+                'order_date' => $orderData['order_date'],
+                'app_name' => $this->appName,
+                'app_url' => $this->appUrl
+            ];
+
+            $results = [
+                'admin_email' => ['success' => false, 'message' => ''],
+                'admin_sms' => ['success' => false, 'message' => '']
+            ];
+
+            $adminConfig = $this->notificationService->getConfig()['admin'];
+
+            // Send email to admin
+            if ($adminConfig['email_notifications']) {
+                $templates = $this->notificationService->getEmailTemplates();
+                $template = $templates['admin_new_order_notification'];
+
+                $subject = $this->notificationService->replaceTemplateVariables($template['subject'], $templateData);
+                $body = $this->notificationService->replaceTemplateVariables($template['body'], $templateData);
+
+                $results['admin_email'] = $this->notificationService->sendEmail($adminConfig['email'], $subject, $body);
+            }
+
+            // Send SMS to admin
+            if ($adminConfig['sms_notifications']) {
+                $smsTemplates = $this->notificationService->getSMSTemplates();
+                $smsTemplate = $smsTemplates['admin_new_order_notification'];
+                $smsMessage = $this->notificationService->replaceTemplateVariables($smsTemplate, $templateData);
+
+                $results['admin_sms'] = $this->notificationService->sendSMS($adminConfig['phone'], $smsMessage);
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Admin new order notifications sent',
+                'details' => $results
+            ];
+
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Failed to send admin new order notification: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
+     * Send admin notification for user registration
+     * 
+     * @param array $userData User data
+     * @return array Result with success status and details
+     */
+    public function sendAdminUserRegistrationNotification($userData)
+    {
+        try {
+            // Check if admin notifications are enabled
+            if (!$this->notificationService->getConfig()['admin']['notifications_enabled']) {
+                return [
+                    'success' => false,
+                    'message' => 'Admin notifications are disabled'
+                ];
+            }
+
+            $requiredFields = ['firstname', 'lastname', 'email', 'contact', 'registration_date'];
+            $this->validateRequiredFields($userData, $requiredFields);
+
+            $templateData = [
+                'firstname' => $userData['firstname'],
+                'lastname' => $userData['lastname'],
+                'email' => $userData['email'],
+                'contact' => $userData['contact'],
+                'registration_date' => $userData['registration_date'],
+                'app_name' => $this->appName,
+                'app_url' => $this->appUrl
+            ];
+
+            $results = [
+                'admin_email' => ['success' => false, 'message' => ''],
+                'admin_sms' => ['success' => false, 'message' => '']
+            ];
+
+            $adminConfig = $this->notificationService->getConfig()['admin'];
+
+            // Send email to admin
+            if ($adminConfig['email_notifications']) {
+                $templates = $this->notificationService->getEmailTemplates();
+                $template = $templates['admin_user_registration_notification'];
+
+                $subject = $this->notificationService->replaceTemplateVariables($template['subject'], $templateData);
+                $body = $this->notificationService->replaceTemplateVariables($template['body'], $templateData);
+
+                $results['admin_email'] = $this->notificationService->sendEmail($adminConfig['email'], $subject, $body);
+            }
+
+            // Send SMS to admin
+            if ($adminConfig['sms_notifications']) {
+                $smsTemplates = $this->notificationService->getSMSTemplates();
+                $smsTemplate = $smsTemplates['admin_user_registration_notification'];
+                $smsMessage = $this->notificationService->replaceTemplateVariables($smsTemplate, $templateData);
+
+                $results['admin_sms'] = $this->notificationService->sendSMS($adminConfig['phone'], $smsMessage);
+            }
+
+            return [
+                'success' => true,
+                'message' => 'Admin user registration notifications sent',
+                'details' => $results
+            ];
+
+        } catch (Exception $e) {
+            return [
+                'success' => false,
+                'message' => 'Failed to send admin user registration notification: ' . $e->getMessage()
+            ];
+        }
+    }
+
+    /**
      * Get status-specific message for order updates
      * 
      * @param string $status Order status
