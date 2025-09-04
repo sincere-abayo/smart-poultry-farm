@@ -473,6 +473,77 @@ class Master extends DBConnection
         }
     }
 
+    /**
+     * Send order status update notifications
+     * 
+     * @param int $order_id Order ID
+     * @param int $status Status code (0=Pending, 1=Packed, 2=Out for Delivery, 3=Picked Up, 4=Delivered, 5=Cancelled)
+     * @return void
+     */
+    private function sendStatusUpdateNotifications($order_id, $status)
+    {
+        try {
+            // Load NotificationManager
+            if (!class_exists('NotificationManager')) {
+                require_once(__DIR__ . '/NotificationManager.php');
+            }
+
+            $notificationManager = new NotificationManager();
+
+            // Get order and user details from database
+            $stmt = $this->conn->prepare("
+                SELECT o.*, c.firstname, c.lastname, c.email, c.contact 
+                FROM orders o 
+                INNER JOIN clients c ON c.id = o.client_id 
+                WHERE o.id = ?
+            ");
+            $stmt->bind_param("i", $order_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $order = $result->fetch_assoc();
+            $stmt->close();
+
+            if (!$order) {
+                throw new Exception("Order not found for status update notification");
+            }
+
+            // Map status codes to status names
+            $statusNames = [
+                0 => 'Pending',
+                1 => 'Packed',
+                2 => 'Out for Delivery',
+                3 => 'Picked Up',
+                4 => 'Delivered',
+                5 => 'Cancelled'
+            ];
+
+            $statusName = $statusNames[$status] ?? 'Unknown';
+
+            // Prepare order data for notifications
+            $orderData = [
+                'user_email' => $order['email'],
+                'user_phone' => $order['contact'],
+                'user_firstname' => $order['firstname'],
+                'user_lastname' => $order['lastname'],
+                'order_id' => $order_id,
+                'new_status' => $statusName
+            ];
+
+            // Send order status update notifications
+            $result = $notificationManager->sendOrderStatusUpdate($orderData);
+
+            // Log only failures for monitoring
+            if (!$result['success']) {
+                error_log("Order status update notifications failed for order #{$order_id}: " . $result['message']);
+            }
+
+        } catch (Exception $e) {
+            // Log error for monitoring
+            error_log("Order status update notification error: " . $e->getMessage());
+            throw $e;
+        }
+    }
+
     function update_account()
     {
         try {
@@ -906,9 +977,17 @@ class Master extends DBConnection
             $save = $stmt->execute();
             $stmt->close();
             if ($save) {
+                // Send status update notifications
+                try {
+                    $this->sendStatusUpdateNotifications($id, $status);
+                } catch (Exception $notificationError) {
+                    // Don't fail the status update if notifications fail
+                    error_log("Status update notification error: " . $notificationError->getMessage());
+                }
+
                 return json_encode([
                     'status' => 'success',
-                    'msg' => 'Order status updated'
+                    'msg' => 'Order status updated successfully! Customer has been notified.'
                 ]);
             } else {
                 throw new Exception($this->conn->error);

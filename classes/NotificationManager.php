@@ -173,15 +173,6 @@ class NotificationManager
             $requiredFields = ['user_email', 'user_phone', 'order_id', 'new_status'];
             $this->validateRequiredFields($orderData, $requiredFields);
 
-            $statusMessages = [
-                'Pending' => 'Your order is being processed',
-                'Packed' => 'Your order has been packed and is ready for delivery',
-                'Out for Delivery' => 'Your order is out for delivery',
-                'Picked Up' => 'Your order has been picked up',
-                'Delivered' => 'Your order has been delivered successfully',
-                'Cancelled' => 'Your order has been cancelled'
-            ];
-
             $templateData = [
                 'firstname' => $orderData['user_firstname'] ?? 'Customer',
                 'lastname' => $orderData['user_lastname'] ?? '',
@@ -189,7 +180,8 @@ class NotificationManager
                 'phone' => $orderData['user_phone'],
                 'order_id' => $orderData['order_id'],
                 'new_status' => $orderData['new_status'],
-                'status_message' => $statusMessages[$orderData['new_status']] ?? 'Your order status has been updated',
+                'status' => $orderData['new_status'],
+                'status_message' => $this->getStatusMessage($orderData['new_status']),
                 'update_date' => date('F j, Y \a\t g:i A'),
                 'app_name' => $this->appName,
                 'app_url' => $this->appUrl
@@ -209,8 +201,10 @@ class NotificationManager
 
             $results['user_email'] = $this->notificationService->sendEmail($orderData['user_email'], $subject, $body);
 
-            // Send SMS to user
-            $smsMessage = "Order #{$orderData['order_id']} status updated to: {$orderData['new_status']}. {$templateData['status_message']}";
+            // Send SMS to user using template
+            $smsTemplates = $this->notificationService->getSMSTemplates();
+            $smsTemplate = $smsTemplates['order_status_update'];
+            $smsMessage = $this->notificationService->replaceTemplateVariables($smsTemplate, $templateData);
             $results['user_sms'] = $this->notificationService->sendSMS($orderData['user_phone'], $smsMessage);
 
             return [
@@ -376,6 +370,26 @@ class NotificationManager
                 'message' => 'Notification system test failed: ' . $e->getMessage()
             ];
         }
+    }
+
+    /**
+     * Get status-specific message for order updates
+     * 
+     * @param string $status Order status
+     * @return string Status-specific message
+     */
+    private function getStatusMessage($status)
+    {
+        $statusMessages = [
+            'Pending' => 'Your order is being processed and will be prepared soon.',
+            'Packed' => 'Your order has been packed and is ready for delivery.',
+            'Out for Delivery' => 'Your order is out for delivery and will arrive soon.',
+            'Picked Up' => 'Your order has been picked up and is on its way.',
+            'Delivered' => 'Your order has been delivered successfully. Thank you for your business!',
+            'Cancelled' => 'Your order has been cancelled. If you have any questions, please contact us.'
+        ];
+
+        return $statusMessages[$status] ?? 'Your order status has been updated.';
     }
 }
 ?>

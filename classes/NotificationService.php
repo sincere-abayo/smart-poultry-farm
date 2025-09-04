@@ -364,6 +364,19 @@ class NotificationService extends DBConnection
         ];
     }
 
+    /**
+     * Get SMS Templates
+     */
+    public function getSMSTemplates()
+    {
+        return [
+            'welcome' => 'Welcome to {app_name}! Your account has been created successfully. Thank you for choosing us!',
+            'payment_confirmation' => 'Payment confirmed! Order #{order_id} - {currency} {amount} via {payment_method}. Thank you!',
+            'order_status_update' => 'Order #{order_id} status updated to: {new_status}. {status_message}',
+            'admin_payment_notification' => 'New payment: Order #{order_id} - {currency} {amount} from {customer_name}'
+        ];
+    }
+
     private function getWelcomeEmailTemplate()
     {
         return '
@@ -371,23 +384,100 @@ class NotificationService extends DBConnection
         <html>
         <head>
             <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Welcome to ' . $this->config['app']['name'] . '</title>
         </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h2 style="color: #2c5aa0;">Welcome to ' . $this->config['app']['name'] . '!</h2>
-                <p>Dear {firstname} {lastname},</p>
-                <p>Thank you for registering with us! We are excited to have you as part of our community.</p>
-                <p>Your account has been successfully created with the following details:</p>
-                <ul>
-                    <li><strong>Email:</strong> {email}</li>
-                    <li><strong>Phone:</strong> {contact}</li>
-                    <li><strong>Registration Date:</strong> {registration_date}</li>
-                </ul>
-                <p>You can now start shopping for fresh poultry products and enjoy our services.</p>
-                <p>If you have any questions, please don\'t hesitate to contact us.</p>
-                <p>Best regards,<br>The ' . $this->config['app']['name'] . ' Team</p>
-            </div>
+        <body style="margin: 0; padding: 0; font-family: \'Segoe UI\', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; line-height: 1.6;">
+            <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f8f9fa;">
+                <tr>
+                    <td style="padding: 40px 20px;">
+                        <table role="presentation" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                            <!-- Header -->
+                            <tr>
+                                <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
+                                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                                        🐔 Welcome to ' . $this->config['app']['name'] . '
+                                    </h1>
+                                    <p style="margin: 10px 0 0 0; color: #e8f4fd; font-size: 16px; opacity: 0.9;">
+                                        Your Fresh Poultry Journey Starts Here
+                                    </p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Content -->
+                            <tr>
+                                <td style="padding: 40px 30px;">
+                                    <div style="text-align: center; margin-bottom: 30px;">
+                                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);">
+                                            <span style="font-size: 32px;">✅</span>
+                                        </div>
+                                        <h2 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 24px; font-weight: 600;">
+                                            Account Created Successfully!
+                                        </h2>
+                                        <p style="margin: 0; color: #7f8c8d; font-size: 16px;">
+                                            Dear {firstname} {lastname}, we\'re excited to have you on board!
+                                        </p>
+                                    </div>
+                                    
+                                    <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; padding: 25px; margin: 25px 0; border-left: 4px solid #667eea;">
+                                        <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px; font-weight: 600;">
+                                            📋 Your Account Details
+                                        </h3>
+                                        <table style="width: 100%; border-collapse: collapse;">
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #34495e; font-weight: 600; width: 40%;">📧 Email:</td>
+                                                <td style="padding: 8px 0; color: #2c3e50;">{email}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #34495e; font-weight: 600;">📱 Phone:</td>
+                                                <td style="padding: 8px 0; color: #2c3e50;">{contact}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #34495e; font-weight: 600;">📅 Joined:</td>
+                                                <td style="padding: 8px 0; color: #2c3e50;">{registration_date}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    
+                                    <div style="background: #e8f5e8; border-radius: 8px; padding: 20px; margin: 25px 0; border-left: 4px solid #27ae60;">
+                                        <h3 style="margin: 0 0 10px 0; color: #27ae60; font-size: 16px; font-weight: 600;">
+                                            🎉 What\'s Next?
+                                        </h3>
+                                        <p style="margin: 0; color: #2c3e50; font-size: 14px;">
+                                            You can now start shopping for fresh, high-quality poultry products and enjoy our premium services. 
+                                            Browse our catalog, place orders, and experience the best in poultry farming!
+                                        </p>
+                                    </div>
+                                    
+                                    <div style="text-align: center; margin: 30px 0;">
+                                        <a href="' . $this->config['app']['url'] . '" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 15px 30px; border-radius: 25px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); transition: all 0.3s ease;">
+                                            🛒 Start Shopping Now
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td style="background: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef;">
+                                    <p style="margin: 0 0 10px 0; color: #6c757d; font-size: 14px;">
+                                        Need help? Contact us anytime!
+                                    </p>
+                                    <p style="margin: 0; color: #6c757d; font-size: 14px;">
+                                        Best regards,<br>
+                                        <strong style="color: #2c3e50;">The ' . $this->config['app']['name'] . ' Team</strong>
+                                    </p>
+                                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+                                        <p style="margin: 0; color: #adb5bd; font-size: 12px;">
+                                            © ' . date('Y') . ' ' . $this->config['app']['name'] . '. All rights reserved.
+                                        </p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
         </body>
         </html>';
     }
@@ -399,26 +489,104 @@ class NotificationService extends DBConnection
         <html>
         <head>
             <meta charset="UTF-8">
-            <title>Payment Confirmation</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Payment Confirmation - Order #{order_id}</title>
         </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h2 style="color: #2c5aa0;">Payment Confirmation</h2>
-                <p>Dear {firstname} {lastname},</p>
-                <p>We have successfully received your payment for Order #{order_id}.</p>
-                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                    <h3>Payment Details:</h3>
-                    <ul>
-                        <li><strong>Order ID:</strong> #{order_id}</li>
-                        <li><strong>Amount:</strong> {amount}</li>
-                        <li><strong>Payment Method:</strong> {payment_method}</li>
-                        <li><strong>Payment Date:</strong> {payment_date}</li>
-                    </ul>
-                </div>
-                <p>Your order is now being processed. You will receive updates on your order status.</p>
-                <p>Thank you for choosing ' . $this->config['app']['name'] . '!</p>
-                <p>Best regards,<br>The ' . $this->config['app']['name'] . ' Team</p>
-            </div>
+        <body style="margin: 0; padding: 0; font-family: \'Segoe UI\', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; line-height: 1.6;">
+            <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f8f9fa;">
+                <tr>
+                    <td style="padding: 40px 20px;">
+                        <table role="presentation" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                            <!-- Header -->
+                            <tr>
+                                <td style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); padding: 40px 30px; text-align: center;">
+                                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                                        💳 Payment Confirmed!
+                                    </h1>
+                                    <p style="margin: 10px 0 0 0; color: #e8f8f5; font-size: 16px; opacity: 0.9;">
+                                        Your order is being processed
+                                    </p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Content -->
+                            <tr>
+                                <td style="padding: 40px 30px;">
+                                    <div style="text-align: center; margin-bottom: 30px;">
+                                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);">
+                                            <span style="font-size: 32px;">✅</span>
+                                        </div>
+                                        <h2 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 24px; font-weight: 600;">
+                                            Payment Received Successfully!
+                                        </h2>
+                                        <p style="margin: 0; color: #7f8c8d; font-size: 16px;">
+                                            Dear {firstname} {lastname}, thank you for your purchase!
+                                        </p>
+                                    </div>
+                                    
+                                    <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; padding: 25px; margin: 25px 0; border-left: 4px solid #27ae60;">
+                                        <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px; font-weight: 600;">
+                                            💰 Payment Details
+                                        </h3>
+                                        <table style="width: 100%; border-collapse: collapse;">
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #34495e; font-weight: 600; width: 40%;">🆔 Order ID:</td>
+                                                <td style="padding: 8px 0; color: #2c3e50; font-family: monospace; font-weight: 600;">#{order_id}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #34495e; font-weight: 600;">💵 Amount:</td>
+                                                <td style="padding: 8px 0; color: #27ae60; font-size: 18px; font-weight: 700;">{amount}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #34495e; font-weight: 600;">💳 Method:</td>
+                                                <td style="padding: 8px 0; color: #2c3e50;">{payment_method}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #34495e; font-weight: 600;">📅 Date:</td>
+                                                <td style="padding: 8px 0; color: #2c3e50;">{payment_date}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    
+                                    <div style="background: #e3f2fd; border-radius: 8px; padding: 20px; margin: 25px 0; border-left: 4px solid #2196f3;">
+                                        <h3 style="margin: 0 0 10px 0; color: #1976d2; font-size: 16px; font-weight: 600;">
+                                            📦 What Happens Next?
+                                        </h3>
+                                        <p style="margin: 0; color: #2c3e50; font-size: 14px;">
+                                            We\'re now processing your order and will keep you updated on its status. 
+                                            You\'ll receive notifications when your order is packed, shipped, and delivered.
+                                        </p>
+                                    </div>
+                                    
+                                    <div style="text-align: center; margin: 30px 0;">
+                                        <a href="' . $this->config['app']['url'] . '/?p=my_account" style="display: inline-block; background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%); color: #ffffff; text-decoration: none; padding: 15px 30px; border-radius: 25px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3); transition: all 0.3s ease;">
+                                            📋 Track Your Order
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td style="background: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef;">
+                                    <p style="margin: 0 0 10px 0; color: #6c757d; font-size: 14px;">
+                                        Questions about your order? We\'re here to help!
+                                    </p>
+                                    <p style="margin: 0; color: #6c757d; font-size: 14px;">
+                                        Best regards,<br>
+                                        <strong style="color: #2c3e50;">The ' . $this->config['app']['name'] . ' Team</strong>
+                                    </p>
+                                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+                                        <p style="margin: 0; color: #adb5bd; font-size: 12px;">
+                                            © ' . date('Y') . ' ' . $this->config['app']['name'] . '. All rights reserved.
+                                        </p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
         </body>
         </html>';
     }
@@ -430,25 +598,99 @@ class NotificationService extends DBConnection
         <html>
         <head>
             <meta charset="UTF-8">
-            <title>Order Status Update</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Order Status Update - Order #{order_id}</title>
         </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h2 style="color: #2c5aa0;">Order Status Update</h2>
-                <p>Dear {firstname} {lastname},</p>
-                <p>Your order status has been updated:</p>
-                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                    <h3>Order Details:</h3>
-                    <ul>
-                        <li><strong>Order ID:</strong> #{order_id}</li>
-                        <li><strong>New Status:</strong> <span style="color: #2c5aa0; font-weight: bold;">{status}</span></li>
-                        <li><strong>Update Date:</strong> {update_date}</li>
-                    </ul>
-                </div>
-                <p>{status_message}</p>
-                <p>Thank you for choosing ' . $this->config['app']['name'] . '!</p>
-                <p>Best regards,<br>The ' . $this->config['app']['name'] . ' Team</p>
-            </div>
+        <body style="margin: 0; padding: 0; font-family: \'Segoe UI\', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; line-height: 1.6;">
+            <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f8f9fa;">
+                <tr>
+                    <td style="padding: 40px 20px;">
+                        <table role="presentation" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                            <!-- Header -->
+                            <tr>
+                                <td style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); padding: 40px 30px; text-align: center;">
+                                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                                        📦 Order Status Update
+                                    </h1>
+                                    <p style="margin: 10px 0 0 0; color: #e8f4fd; font-size: 16px; opacity: 0.9;">
+                                        Your order is on the move!
+                                    </p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Content -->
+                            <tr>
+                                <td style="padding: 40px 30px;">
+                                    <div style="text-align: center; margin-bottom: 30px;">
+                                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3);">
+                                            <span style="font-size: 32px;">📋</span>
+                                        </div>
+                                        <h2 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 24px; font-weight: 600;">
+                                            Status Updated!
+                                        </h2>
+                                        <p style="margin: 0; color: #7f8c8d; font-size: 16px;">
+                                            Dear {firstname} {lastname}, your order status has been updated
+                                        </p>
+                                    </div>
+                                    
+                                    <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; padding: 25px; margin: 25px 0; border-left: 4px solid #3498db;">
+                                        <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px; font-weight: 600;">
+                                            📋 Order Details
+                                        </h3>
+                                        <table style="width: 100%; border-collapse: collapse;">
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #34495e; font-weight: 600; width: 40%;">🆔 Order ID:</td>
+                                                <td style="padding: 8px 0; color: #2c3e50; font-family: monospace; font-weight: 600;">#{order_id}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #34495e; font-weight: 600;">📊 Status:</td>
+                                                <td style="padding: 8px 0; color: #3498db; font-size: 18px; font-weight: 700;">{status}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #34495e; font-weight: 600;">📅 Updated:</td>
+                                                <td style="padding: 8px 0; color: #2c3e50;">{update_date}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    
+                                    <div style="background: #e8f4fd; border-radius: 8px; padding: 20px; margin: 25px 0; border-left: 4px solid #2196f3;">
+                                        <h3 style="margin: 0 0 10px 0; color: #1976d2; font-size: 16px; font-weight: 600;">
+                                            ℹ️ Status Information
+                                        </h3>
+                                        <p style="margin: 0; color: #2c3e50; font-size: 14px;">
+                                            {status_message}
+                                        </p>
+                                    </div>
+                                    
+                                    <div style="text-align: center; margin: 30px 0;">
+                                        <a href="' . $this->config['app']['url'] . '/?p=my_account" style="display: inline-block; background: linear-gradient(135deg, #3498db 0%, #2980b9 100%); color: #ffffff; text-decoration: none; padding: 15px 30px; border-radius: 25px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 15px rgba(52, 152, 219, 0.3); transition: all 0.3s ease;">
+                                            📋 View Order Details
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td style="background: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef;">
+                                    <p style="margin: 0 0 10px 0; color: #6c757d; font-size: 14px;">
+                                        Questions about your order? We\'re here to help!
+                                    </p>
+                                    <p style="margin: 0; color: #6c757d; font-size: 14px;">
+                                        Best regards,<br>
+                                        <strong style="color: #2c3e50;">The ' . $this->config['app']['name'] . ' Team</strong>
+                                    </p>
+                                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+                                        <p style="margin: 0; color: #adb5bd; font-size: 12px;">
+                                            © ' . date('Y') . ' ' . $this->config['app']['name'] . '. All rights reserved.
+                                        </p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
         </body>
         </html>';
     }
@@ -460,26 +702,107 @@ class NotificationService extends DBConnection
         <html>
         <head>
             <meta charset="UTF-8">
-            <title>New Payment Received</title>
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>New Payment Received - Order #{order_id}</title>
         </head>
-        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
-                <h2 style="color: #2c5aa0;">New Payment Received</h2>
-                <p>Dear Admin,</p>
-                <p>A new payment has been received for Order #{order_id}.</p>
-                <div style="background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin: 20px 0;">
-                    <h3>Payment Details:</h3>
-                    <ul>
-                        <li><strong>Order ID:</strong> #{order_id}</li>
-                        <li><strong>Customer:</strong> {customer_name}</li>
-                        <li><strong>Amount:</strong> {amount}</li>
-                        <li><strong>Payment Method:</strong> {payment_method}</li>
-                        <li><strong>Payment Date:</strong> {payment_date}</li>
-                    </ul>
-                </div>
-                <p>Please process this order accordingly.</p>
-                <p>Best regards,<br>' . $this->config['app']['name'] . ' System</p>
-            </div>
+        <body style="margin: 0; padding: 0; font-family: \'Segoe UI\', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8f9fa; line-height: 1.6;">
+            <table role="presentation" style="width: 100%; border-collapse: collapse; background-color: #f8f9fa;">
+                <tr>
+                    <td style="padding: 40px 20px;">
+                        <table role="presentation" style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1); overflow: hidden;">
+                            <!-- Header -->
+                            <tr>
+                                <td style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); padding: 40px 30px; text-align: center;">
+                                    <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">
+                                        💰 New Payment Received!
+                                    </h1>
+                                    <p style="margin: 10px 0 0 0; color: #fadbd8; font-size: 16px; opacity: 0.9;">
+                                        Action required - Process order
+                                    </p>
+                                </td>
+                            </tr>
+                            
+                            <!-- Content -->
+                            <tr>
+                                <td style="padding: 40px 30px;">
+                                    <div style="text-align: center; margin-bottom: 30px;">
+                                        <div style="width: 80px; height: 80px; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3);">
+                                            <span style="font-size: 32px;">🔔</span>
+                                        </div>
+                                        <h2 style="margin: 0 0 10px 0; color: #2c3e50; font-size: 24px; font-weight: 600;">
+                                            Payment Alert!
+                                        </h2>
+                                        <p style="margin: 0; color: #7f8c8d; font-size: 16px;">
+                                            Dear Admin, a new payment has been received
+                                        </p>
+                                    </div>
+                                    
+                                    <div style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-radius: 8px; padding: 25px; margin: 25px 0; border-left: 4px solid #e74c3c;">
+                                        <h3 style="margin: 0 0 15px 0; color: #2c3e50; font-size: 18px; font-weight: 600;">
+                                            💳 Payment Details
+                                        </h3>
+                                        <table style="width: 100%; border-collapse: collapse;">
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #34495e; font-weight: 600; width: 40%;">🆔 Order ID:</td>
+                                                <td style="padding: 8px 0; color: #2c3e50; font-family: monospace; font-weight: 600;">#{order_id}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #34495e; font-weight: 600;">👤 Customer:</td>
+                                                <td style="padding: 8px 0; color: #2c3e50; font-weight: 600;">{customer_name}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #34495e; font-weight: 600;">💵 Amount:</td>
+                                                <td style="padding: 8px 0; color: #e74c3c; font-size: 18px; font-weight: 700;">{amount}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #34495e; font-weight: 600;">💳 Method:</td>
+                                                <td style="padding: 8px 0; color: #2c3e50;">{payment_method}</td>
+                                            </tr>
+                                            <tr>
+                                                <td style="padding: 8px 0; color: #34495e; font-weight: 600;">📅 Date:</td>
+                                                <td style="padding: 8px 0; color: #2c3e50;">{payment_date}</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                    
+                                    <div style="background: #fff3cd; border-radius: 8px; padding: 20px; margin: 25px 0; border-left: 4px solid #ffc107;">
+                                        <h3 style="margin: 0 0 10px 0; color: #856404; font-size: 16px; font-weight: 600;">
+                                            ⚠️ Action Required
+                                        </h3>
+                                        <p style="margin: 0; color: #2c3e50; font-size: 14px;">
+                                            Please process this order accordingly. Update the order status and prepare for fulfillment.
+                                        </p>
+                                    </div>
+                                    
+                                    <div style="text-align: center; margin: 30px 0;">
+                                        <a href="' . $this->config['app']['url'] . '/admin/orders/" style="display: inline-block; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: #ffffff; text-decoration: none; padding: 15px 30px; border-radius: 25px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 15px rgba(231, 76, 60, 0.3); transition: all 0.3s ease;">
+                                            📋 Manage Orders
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Footer -->
+                            <tr>
+                                <td style="background: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e9ecef;">
+                                    <p style="margin: 0 0 10px 0; color: #6c757d; font-size: 14px;">
+                                        This is an automated notification from the system
+                                    </p>
+                                    <p style="margin: 0; color: #6c757d; font-size: 14px;">
+                                        Best regards,<br>
+                                        <strong style="color: #2c3e50;">' . $this->config['app']['name'] . ' System</strong>
+                                    </p>
+                                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+                                        <p style="margin: 0; color: #adb5bd; font-size: 12px;">
+                                            © ' . date('Y') . ' ' . $this->config['app']['name'] . '. All rights reserved.
+                                        </p>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
         </body>
         </html>';
     }
