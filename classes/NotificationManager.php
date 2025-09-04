@@ -101,7 +101,7 @@ class NotificationManager
                 'lastname' => $paymentData['user_lastname'] ?? '',
                 'email' => $paymentData['user_email'],
                 'phone' => $paymentData['user_phone'],
-                'amount' => number_format($paymentData['amount'], 2),
+                'amount' => $this->formatAmount($paymentData['amount']),
                 'currency' => $paymentData['currency'] ?? 'RWF',
                 'order_id' => $paymentData['order_id'],
                 'payment_method' => $paymentData['payment_method'],
@@ -512,6 +512,29 @@ class NotificationManager
                 'message' => 'Failed to send admin user registration notification: ' . $e->getMessage()
             ];
         }
+    }
+
+    /**
+     * Format amount for display
+     * 
+     * @param mixed $amount Amount to format
+     * @return string Formatted amount
+     */
+    private function formatAmount($amount)
+    {
+        // If it's already a formatted string, return as is
+        if (is_string($amount) && (strpos($amount, 'RWF') !== false || strpos($amount, '$') !== false || strpos($amount, '€') !== false)) {
+            return $amount;
+        }
+
+        // Extract numeric value from string if needed
+        if (is_string($amount)) {
+            $amount = preg_replace('/[^0-9.]/', '', $amount);
+        }
+
+        // Convert to float and format
+        $numericAmount = floatval($amount);
+        return number_format($numericAmount, 2);
     }
 
     /**

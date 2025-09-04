@@ -24,6 +24,7 @@ class NotificationService extends DBConnection
 {
     private $mail;
     private $config;
+    private $logFile;
 
     public function __construct()
     {
@@ -31,6 +32,8 @@ class NotificationService extends DBConnection
             parent::__construct();
             $this->loadConfig();
             $this->initializeMailer();
+            $this->logFile = __DIR__ . '/../logs/notifications.log';
+            $this->ensureLogDirectory();
         } catch (Exception $e) {
             error_log("NotificationService constructor error: " . $e->getMessage());
             throw new Exception("Failed to initialize NotificationService: " . $e->getMessage());
@@ -126,6 +129,14 @@ class NotificationService extends DBConnection
      */
     public function sendEmail($to, $subject, $body, $isHTML = true, $attachments = [])
     {
+        $details = [
+            'to' => is_array($to) ? implode(', ', array_keys($to)) : $to,
+            'subject' => $subject,
+            'body_length' => strlen($body),
+            'is_html' => $isHTML,
+            'attachments_count' => count($attachments)
+        ];
+
         try {
             // Clear previous recipients
             $this->mail->clearAddresses();
@@ -157,16 +168,29 @@ class NotificationService extends DBConnection
 
             $result = $this->mail->send();
 
-            return [
-                'success' => true,
-                'message' => 'Email sent successfully',
-                'data' => ['to' => $to, 'subject' => $subject]
-            ];
+            if ($result) {
+                $this->logSuccess('email', $details);
+                return [
+                    'success' => true,
+                    'message' => 'Email sent successfully',
+                    'data' => ['to' => $to, 'subject' => $subject]
+                ];
+            } else {
+                $error = 'Failed to send email: ' . $this->mail->ErrorInfo;
+                $this->logFailure('email', $details, $error);
+                return [
+                    'success' => false,
+                    'message' => $error,
+                    'error' => $this->mail->ErrorInfo
+                ];
+            }
 
         } catch (Exception $e) {
+            $error = 'Email sending failed: ' . $e->getMessage();
+            $this->logFailure('email', $details, $error);
             return [
                 'success' => false,
-                'message' => 'Email sending failed: ' . $e->getMessage(),
+                'message' => $error,
                 'error' => $e->getMessage()
             ];
         }
@@ -177,6 +201,15 @@ class NotificationService extends DBConnection
      */
     public function sendSMS($phoneNumbers, $message)
     {
+        // Convert single phone number to array for logging
+        $originalNumbers = is_array($phoneNumbers) ? $phoneNumbers : [$phoneNumbers];
+
+        $details = [
+            'phone_numbers' => $originalNumbers,
+            'message_length' => strlen($message),
+            'recipient_count' => count($originalNumbers)
+        ];
+
         try {
             $username = $this->config['sms']['username'];
             $apiKey = $this->config['sms']['api_key'];
@@ -264,8 +297,21 @@ class NotificationService extends DBConnection
                     ];
                 }
 
+                $success = $successCount > 0;
+                $logDetails = array_merge($details, [
+                    'total_recipients' => count($formattedNumbers),
+                    'successful' => $successCount,
+                    'failed' => $failedCount
+                ]);
+
+                if ($success) {
+                    $this->logSuccess('sms', $logDetails);
+                } else {
+                    $this->logFailure('sms', $logDetails, "All SMS messages failed");
+                }
+
                 return [
-                    'success' => $successCount > 0,
+                    'success' => $success,
                     'message' => "SMS sent to {$successCount} recipients, {$failedCount} failed",
                     'data' => [
                         'total' => count($formattedNumbers),
@@ -280,9 +326,11 @@ class NotificationService extends DBConnection
             }
 
         } catch (Exception $e) {
+            $error = 'SMS sending failed: ' . $e->getMessage();
+            $this->logFailure('sms', $details, $error);
             return [
                 'success' => false,
-                'message' => 'SMS sending failed: ' . $e->getMessage(),
+                'message' => $error,
                 'error' => $e->getMessage()
             ];
         }
@@ -1066,6 +1114,125 @@ class NotificationService extends DBConnection
             $template = str_replace('{' . $key . '}', $value, $template);
         }
         return $template;
+    }
+
+    /**
+     * Ensure log directory exists
+     */
+    private function ensureLogDirectory()
+    {
+        $logDir = dirname($this->logFile);
+        if (!is_dir($logDir)) {
+            mkdir($logDir, 0755, true);
+        }
+    }
+
+    /**
+     * Log notification activity
+     */
+    private function logNotification($type, $status, $details, $error = null)
+    {
+        $timestamp = date('Y-m-d H:i:s');
+        $logEntry = [
+            'timestamp' => $timestamp,
+            'type' => $type,
+            'status' => $status,
+            'details' => $details,
+            'error' => $error
+        ];
+
+        $logLine = json_encode($logEntry) . "\n";
+        file_put_contents($this->logFile, $logLine, FILE_APPEND | LOCK_EX);
+    }
+
+    /**
+     * Log successful notification
+     */
+    private function logSuccess($type, $details)
+    {
+        $this->logNotification($type, 'success', $details);
+    }
+
+    /**
+     * Log failed notification
+     */
+    private function logFailure($type, $details, $error)
+    {
+        $this->logNotification($type, 'failure', $details, $error);
+    }
+
+    /**
+     * Get notification logs
+     */
+    public function getNotificationLogs($limit = 100, $type = null)
+    {
+        if (!file_exists($this->logFile)) {
+            return [];
+        }
+
+        $logs = [];
+        $lines = file($this->logFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+
+        if ($lines === false) {
+            return [];
+        }
+
+        // Get last N lines
+        $lines = array_slice($lines, -$limit);
+
+        foreach ($lines as $line) {
+            $logEntry = json_decode($line, true);
+            if ($logEntry && (!$type || $logEntry['type'] === $type)) {
+                $logs[] = $logEntry;
+            }
+        }
+
+        return array_reverse($logs); // Most recent first
+    }
+
+    /**
+     * Get notification statistics
+     */
+    public function getNotificationStats($days = 7)
+    {
+        $logs = $this->getNotificationLogs(1000);
+        $cutoff = date('Y-m-d H:i:s', strtotime("-{$days} days"));
+
+        $stats = [
+            'total' => 0,
+            'successful' => 0,
+            'failed' => 0,
+            'by_type' => [],
+            'by_status' => []
+        ];
+
+        foreach ($logs as $log) {
+            if ($log['timestamp'] < $cutoff) {
+                continue;
+            }
+
+            $stats['total']++;
+
+            if ($log['status'] === 'success') {
+                $stats['successful']++;
+            } else {
+                $stats['failed']++;
+            }
+
+            // Count by type
+            if (!isset($stats['by_type'][$log['type']])) {
+                $stats['by_type'][$log['type']] = 0;
+            }
+            $stats['by_type'][$log['type']]++;
+
+            // Count by status
+            if (!isset($stats['by_status'][$log['status']])) {
+                $stats['by_status'][$log['status']] = 0;
+            }
+            $stats['by_status'][$log['status']]++;
+        }
+
+        return $stats;
     }
 }
 ?>
