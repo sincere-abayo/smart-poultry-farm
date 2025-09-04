@@ -258,10 +258,10 @@
                 },
                 success: function (resp) {
                     if (typeof resp == 'object' && resp.status == 'success') {
-                        alert_toast("Account succesfully registered", 'success')
+                        alert_toast("Account successfully registered! Welcome email has been sent.", 'success')
                         setTimeout(function () {
                             location.reload()
-                        }, 2000)
+                        }, 3000)
                     } else if (resp.status == 'failed' && !!resp.msg) {
                         var _err_el = $('<div>')
                         _err_el.addClass("alert alert-danger err-msg").text(resp.msg)
@@ -270,7 +270,7 @@
 
                     } else {
                         console.log(resp)
-                        alert_toast("an error occured", 'error')
+                        alert_toast("An error occurred during registration", 'error')
                         end_loader()
                     }
                 }

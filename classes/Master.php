@@ -70,12 +70,6 @@ class Master extends DBConnection
 
     function place_order()
     {
-        // Enable full error reporting
-        error_reporting(E_ALL);
-        ini_set('display_errors', 0); // Disable display_errors to prevent non-JSON output
-        ini_set('log_errors', 1);
-        ini_set('error_log', '/tmp/php_errors.log');
-
         try {
             // Clear any previous output and start fresh
             while (ob_get_level()) {
@@ -89,34 +83,10 @@ class Master extends DBConnection
 
             // Check database connection first
             if (!$this->isConnected()) {
-                error_log("Database connection lost at start of place_order");
                 if (!$this->reconnect()) {
                     throw new Exception("Database connection failed. Please try again.");
                 }
             }
-
-            // Verify database connection before proceeding
-            if (!$this->isConnected()) {
-                error_log("Database connection lost before order placement");
-                $this->reconnect();
-            }
-            header('Cache-Control: no-cache, must-revalidate');
-
-            // Debug logging
-            error_log("Starting place_order function");
-            error_log("POST data: " . print_r($_POST, true));
-            error_log("SESSION data: " . print_r($_SESSION, true));
-
-            // Enable error reporting for debugging
-            error_reporting(E_ALL);
-            ini_set('display_errors', 0); // Disable display_errors to prevent non-JSON output
-
-            // Error handler already set globally; do not redefine here
-
-            // Log the incoming data
-            error_log("[Place Order] Starting order placement...");
-            error_log("[Place Order] POST data: " . print_r($_POST, true));
-            error_log("[Place Order] SESSION data: " . print_r($_SESSION, true));
 
             // Validate session
             if (!isset($_SESSION)) {
@@ -143,7 +113,6 @@ class Master extends DBConnection
             $momo_number = $_POST['momo_number'] ?? '';
 
             // Start transaction
-            error_log("[Place Order] Starting database transaction");
             if (!$this->conn->begin_transaction()) {
                 throw new Exception("Failed to start transaction");
             }
@@ -255,6 +224,14 @@ class Master extends DBConnection
                 throw new Exception("Failed to commit transaction");
             }
 
+            // Send payment confirmation notifications
+            try {
+                $this->sendPaymentNotifications($order_id, $client_id, $amount, $payment_method);
+            } catch (Exception $notificationError) {
+                // Don't fail the order if notifications fail
+                error_log("Payment notification error: " . $notificationError->getMessage());
+            }
+
             // Clear any buffered output
             if (ob_get_length())
                 ob_clean();
@@ -263,51 +240,29 @@ class Master extends DBConnection
             echo json_encode([
                 'status' => 'success',
                 'order_id' => $order_id,
-                'message' => 'Order placed successfully'
+                'message' => 'Order placed successfully! Payment confirmation sent to your email and phone.'
             ]);
             exit;
 
         } catch (Throwable $e) {
-            error_log("Exception in place_order: " . $e->getMessage());
-            error_log("Stack trace: " . $e->getTraceAsString());
 
             // Rollback transaction on error
             try {
                 if ($this->conn && $this->conn->connect_errno === 0) {
                     $this->conn->rollback();
-                    error_log("Transaction rolled back successfully");
                 }
             } catch (Exception $rollbackError) {
-                error_log("Rollback failed: " . $rollbackError->getMessage());
+                // Log rollback failure but continue
             }
-
-            // Log the error for debugging
-            error_log("Order placement failed: " . $e->getMessage());
-            error_log("Order details: " . print_r($_POST, true));
-            error_log("Stack trace: " . $e->getTraceAsString());
 
             // Clear any buffered output
             if (ob_get_length())
                 ob_clean();
 
-            // Send error response with appropriate status code
-            $statusCode = ($e instanceof mysqli_sql_exception) ? 503 : 400;
-            http_response_code($statusCode);
-
-            // Sanitize error message for production
-            $publicMessage = ($e instanceof mysqli_sql_exception)
-                ? "Database operation failed. Please try again later."
-                : $e->getMessage();
-
+            // Send error response
             echo json_encode([
                 'status' => 'failed',
-                'error' => $publicMessage,
-                'debug' => [
-                    'message' => $e->getMessage(),
-                    'code' => $e->getCode(),
-                    'file' => basename($e->getFile()),
-                    'line' => $e->getLine()
-                ]
+                'msg' => 'An error occurred while processing your order. Please try again.'
             ]);
 
             // Ensure output buffer is cleaned
@@ -356,6 +311,165 @@ class Master extends DBConnection
                 'status' => 'failed',
                 'msg' => $e->getMessage()
             ]);
+        }
+    }
+
+    function register()
+    {
+        try {
+            // Validate required fields
+            if (
+                !isset($_POST['firstname']) || !isset($_POST['lastname']) ||
+                !isset($_POST['email']) || !isset($_POST['password']) ||
+                !isset($_POST['contact']) || !isset($_POST['gender'])
+            ) {
+                throw new Exception("All required fields must be filled");
+            }
+
+            $firstname = trim($_POST['firstname']);
+            $lastname = trim($_POST['lastname']);
+            $email = trim($_POST['email']);
+            $password = $_POST['password'];
+            $contact = trim($_POST['contact']);
+            $gender = $_POST['gender'];
+            $default_delivery_address = isset($_POST['default_delivery_address']) ? trim($_POST['default_delivery_address']) : '';
+
+            // Validate email format
+            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+                throw new Exception("Invalid email format");
+            }
+
+            // Validate password length
+            if (strlen($password) < 6) {
+                throw new Exception("Password must be at least 6 characters long");
+            }
+
+            // Check if email already exists
+            $stmt = $this->conn->prepare("SELECT COUNT(*) as count FROM clients WHERE email = ?");
+            $stmt->bind_param("s", $email);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $count = $result->fetch_assoc()['count'];
+            $stmt->close();
+
+            if ($count > 0) {
+                throw new Exception("Email already exists. Please use a different email address.");
+            }
+
+            // Hash password
+            $hashed_password = md5($password);
+
+            // Insert new user
+            $stmt = $this->conn->prepare("INSERT INTO clients (firstname, lastname, email, password, contact, gender, default_delivery_address, date_created) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
+            $stmt->bind_param("sssssss", $firstname, $lastname, $email, $hashed_password, $contact, $gender, $default_delivery_address);
+
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to create account. Please try again.");
+            }
+
+            $user_id = $this->conn->insert_id;
+            $stmt->close();
+
+            // Send welcome email notification
+            try {
+                // Load NotificationManager
+                if (!class_exists('NotificationManager')) {
+                    require_once(__DIR__ . '/NotificationManager.php');
+                }
+
+                $notificationManager = new NotificationManager();
+
+                // Prepare user data for welcome email
+                $userData = [
+                    'firstname' => $firstname,
+                    'lastname' => $lastname,
+                    'email' => $email,
+                    'contact' => $contact
+                ];
+
+                // Send welcome email using NotificationManager
+                $emailResult = $notificationManager->sendWelcomeEmail($userData);
+
+                // Log only failures for monitoring
+                if (!$emailResult['success']) {
+                    error_log("Welcome email failed for: " . $email . " - " . $emailResult['message']);
+                }
+
+            } catch (Exception $emailError) {
+                // Don't fail registration if email fails
+                // Log error for monitoring
+                error_log("Welcome email error: " . $emailError->getMessage());
+            }
+
+            return json_encode([
+                'status' => 'success',
+                'msg' => 'Account successfully created! Welcome email has been sent.',
+                'user_id' => $user_id
+            ]);
+
+        } catch (Exception $e) {
+            return json_encode([
+                'status' => 'failed',
+                'msg' => $e->getMessage()
+            ]);
+        }
+    }
+
+    /**
+     * Send payment confirmation notifications
+     * 
+     * @param int $order_id Order ID
+     * @param int $client_id Client ID
+     * @param float $amount Payment amount
+     * @param string $payment_method Payment method
+     * @return void
+     */
+    private function sendPaymentNotifications($order_id, $client_id, $amount, $payment_method)
+    {
+        try {
+            // Load NotificationManager
+            if (!class_exists('NotificationManager')) {
+                require_once(__DIR__ . '/NotificationManager.php');
+            }
+
+            $notificationManager = new NotificationManager();
+
+            // Get user details from database
+            $stmt = $this->conn->prepare("SELECT firstname, lastname, email, contact FROM clients WHERE id = ?");
+            $stmt->bind_param("i", $client_id);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $user = $result->fetch_assoc();
+            $stmt->close();
+
+            if (!$user) {
+                throw new Exception("User not found for payment notification");
+            }
+
+            // Prepare payment data for notifications
+            $paymentData = [
+                'user_email' => $user['email'],
+                'user_phone' => $user['contact'],
+                'user_firstname' => $user['firstname'],
+                'user_lastname' => $user['lastname'],
+                'amount' => $amount,
+                'currency' => 'RWF',
+                'order_id' => $order_id,
+                'payment_method' => $payment_method
+            ];
+
+            // Send payment confirmation notifications
+            $result = $notificationManager->sendPaymentConfirmation($paymentData);
+
+            // Log only failures for monitoring
+            if (!$result['success']) {
+                error_log("Payment notifications failed for order #{$order_id}: " . $result['message']);
+            }
+
+        } catch (Exception $e) {
+            // Log error for monitoring
+            error_log("Payment notification error: " . $e->getMessage());
+            throw $e;
         }
     }
 
@@ -478,7 +592,8 @@ class Master extends DBConnection
             $category = isset($_POST['category']) ? trim($_POST['category']) : '';
             $description = isset($_POST['description']) ? trim($_POST['description']) : '';
             $status = isset($_POST['status']) ? intval($_POST['status']) : 1;
-            if (!$category) throw new Exception("Category name is required");
+            if (!$category)
+                throw new Exception("Category name is required");
             if ($id > 0) {
                 $stmt = $this->conn->prepare("UPDATE categories SET category=?, description=?, status=? WHERE id=?");
                 $stmt->bind_param("ssii", $category, $description, $status, $id);
@@ -567,7 +682,8 @@ class Master extends DBConnection
             $name = isset($_POST['name']) ? trim($_POST['name']) : '';
             $description = isset($_POST['description']) ? trim($_POST['description']) : '';
             $status = isset($_POST['status']) ? intval($_POST['status']) : 1;
-            if (!$name) throw new Exception("Brand name is required");
+            if (!$name)
+                throw new Exception("Brand name is required");
             if ($id > 0) {
                 $stmt = $this->conn->prepare("UPDATE brands SET name=?, description=?, status=? WHERE id=?");
                 $stmt->bind_param("ssii", $name, $description, $status, $id);
