@@ -5,7 +5,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Bootstrap Test - Smart Poultry Farm</title>
+    <title>Bootstrap Test - Selling Poultry Farm</title>
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="<?php echo base_url ?>plugins/bootstrap/css/bootstrap.min.css">

@@ -1,10 +1,10 @@
 <?php
 /**
  * Notification System Installation Script
- * This script helps set up the notification system for Smart Poultry Farm
+ * This script helps set up the notification system for Selling  Poultry Farm
  */
 
-echo "<h1>Smart Poultry Farm - Notification System Setup</h1>\n";
+echo "<h1>Selling  Poultry Farm - Notification System Setup</h1>\n";
 echo "<hr>\n";
 
 // Check if composer is available
@@ -66,7 +66,7 @@ echo "MAIL_PORT=587\n";
 echo "MAIL_USERNAME=your-email@gmail.com\n";
 echo "MAIL_PASSWORD=your-app-password\n";
 echo "MAIL_FROM_EMAIL=noreply@smartpoultry.com\n";
-echo "MAIL_FROM_NAME=Smart Poultry Farm\n";
+echo "MAIL_FROM_NAME=Selling  Poultry Farm\n";
 echo "MAIL_ENCRYPTION=tls\n";
 echo "</pre>\n";
 

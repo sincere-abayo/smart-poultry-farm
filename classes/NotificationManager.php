@@ -3,7 +3,7 @@
  * Professional Notification Manager
  * Centralized service for sending emails and SMS notifications
  * 
- * @author Smart Poultry Farm System
+ * @author Selling  Poultry Farm System
  * @version 1.0
  */
 
@@ -31,7 +31,7 @@ class NotificationManager
     {
         try {
             $this->notificationService = new NotificationService();
-            $this->appName = $_ENV['APP_NAME'] ?? 'Smart Poultry Farm';
+            $this->appName = $_ENV['APP_NAME'] ?? 'Selling  Poultry Farm';
             $this->appUrl = $_ENV['APP_URL'] ?? 'http://localhost/smart-poultry-farm';
         } catch (Exception $e) {
             error_log("NotificationManager initialization error: " . $e->getMessage());

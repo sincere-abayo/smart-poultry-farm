@@ -1,7 +1,7 @@
-# Smart Poultry Farm - Notification Integration Plan
+# Selling  Poultry Farm - Notification Integration Plan
 
 ## Overview
-This document outlines the step-by-step implementation plan for integrating email and SMS notifications into the Smart Poultry Farm system.
+This document outlines the step-by-step implementation plan for integrating email and SMS notifications into the Selling  Poultry Farm system.
 
 ## Current System Analysis
 - ✅ **NotificationService**: Fully functional with email and SMS capabilities
@@ -320,7 +320,7 @@ SMS_NOTIFICATIONS_ENABLED=true
 
 ## Ready for Implementation
 
-This plan provides a comprehensive roadmap for integrating notifications into the Smart Poultry Farm system. Each phase builds upon the previous one, ensuring a systematic and reliable implementation.
+This plan provides a comprehensive roadmap for integrating notifications into the Selling  Poultry Farm system. Each phase builds upon the previous one, ensuring a systematic and reliable implementation.
 
 **Status**: ✅ Ready for implementation
 **Next Step**: Awaiting go-ahead to begin Phase 1

@@ -274,7 +274,7 @@ CREATE TABLE `system_info` (
 --
 
 INSERT INTO `system_info` (`id`, `meta_field`, `meta_value`) VALUES
-(1, 'name', 'Online Smart Poultry Farm Management System'),
+(1, 'name', 'Online Selling  Poultry Farm Management System'),
 (6, 'short_name', 'OSPMS'),
 (11, 'logo', 'uploads/1630289100_smart.jpg'),
 (13, 'user_avatar', 'uploads/user_avatar.jpg'),

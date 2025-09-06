@@ -1,4 +1,4 @@
-# Smart Poultry Farm - Notification System Setup
+# Selling  Poultry Farm - Notification System Setup
 
 This document provides step-by-step instructions for setting up the email and SMS notification system.
 
@@ -34,7 +34,7 @@ MAIL_PORT=587
 MAIL_USERNAME=your-email@gmail.com
 MAIL_PASSWORD=your-app-password
 MAIL_FROM_EMAIL=noreply@smartpoultry.com
-MAIL_FROM_NAME=Smart Poultry Farm
+MAIL_FROM_NAME=Selling  Poultry Farm
 MAIL_ENCRYPTION=tls
 ```
 

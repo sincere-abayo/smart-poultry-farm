@@ -66,7 +66,7 @@ class NotificationService extends DBConnection
                 'username' => $_ENV['MAIL_USERNAME'] ?? '',
                 'password' => $_ENV['MAIL_PASSWORD'] ?? '',
                 'from_email' => $_ENV['MAIL_FROM_EMAIL'] ?? 'noreply@smartpoultry.com',
-                'from_name' => $_ENV['MAIL_FROM_NAME'] ?? 'Smart Poultry Farm',
+                'from_name' => $_ENV['MAIL_FROM_NAME'] ?? 'Selling  Poultry Farm',
                 'encryption' => $_ENV['MAIL_ENCRYPTION'] ?? 'tls'
             ],
             'sms' => [

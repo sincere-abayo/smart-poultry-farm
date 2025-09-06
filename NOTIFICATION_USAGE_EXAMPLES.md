@@ -1,7 +1,7 @@
 # NotificationManager Usage Examples
 
 ## Overview
-The `NotificationManager` class provides a clean, professional API for sending notifications throughout the Smart Poultry Farm system. It handles all the complexity of email and SMS sending, template processing, and error handling.
+The `NotificationManager` class provides a clean, professional API for sending notifications throughout the Selling  Poultry Farm system. It handles all the complexity of email and SMS sending, template processing, and error handling.
 
 ## Basic Usage
 
@@ -83,7 +83,7 @@ $result = $notifications->sendCustomEmail(
     'Hello {{firstname}}, we have a special offer for you!',
     [
         'firstname' => 'John',
-        'app_name' => 'Smart Poultry Farm'
+        'app_name' => 'Selling  Poultry Farm'
     ]
 );
 ```

@@ -55,19 +55,19 @@ if (!$clients) {
                         <tbody>
                             <?php $i = 1;
                             while ($row = $users->fetch_assoc()): ?>
-                            <tr>
-                                <td><?= $i++ ?></td>
-                                <td><?= htmlspecialchars($row['firstname']) ?></td>
-                                <td><?= htmlspecialchars($row['lastname']) ?></td>
-                                <td><?= htmlspecialchars($row['username']) ?></td>
-                                <td><?= $row['type'] == 1 ? 'Admin' : 'User' ?></td>
-                                <td><?= $row['date_added'] ?></td>
-                                <td>
-                                    <button class="btn btn-sm btn-info editUserBtn" data-id="<?= $row['id'] ?>"
-                                        data-json='<?= json_encode($row) ?>'><i class="fa fa-edit"></i> Edit</button>
-                                    <!-- Hide Delete for users -->
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td><?= $i++ ?></td>
+                                    <td><?= htmlspecialchars($row['firstname']) ?></td>
+                                    <td><?= htmlspecialchars($row['lastname']) ?></td>
+                                    <td><?= htmlspecialchars($row['username']) ?></td>
+                                    <td><?= $row['type'] == 1 ? 'Admin' : 'User' ?></td>
+                                    <td><?= $row['date_added'] ?></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info editUserBtn" data-id="<?= $row['id'] ?>"
+                                            data-json='<?= json_encode($row) ?>'><i class="fa fa-edit"></i> Edit</button>
+                                        <!-- Hide Delete for users -->
+                                    </td>
+                                </tr>
                             <?php endwhile; ?>
                         </tbody>
                     </table>
@@ -95,22 +95,22 @@ if (!$clients) {
                         <tbody>
                             <?php $i = 1;
                             while ($row = $clients->fetch_assoc()): ?>
-                            <tr>
-                                <td><?= $i++ ?></td>
-                                <td><?= htmlspecialchars($row['firstname']) ?></td>
-                                <td><?= htmlspecialchars($row['lastname']) ?></td>
-                                <td><?= htmlspecialchars($row['email']) ?></td>
-                                <td><?= htmlspecialchars($row['contact']) ?></td>
-                                <td><?= htmlspecialchars($row['gender']) ?></td>
-                                <td><?= $row['date_created'] ?></td>
-                                <td>
-                                    <button class="btn btn-sm btn-info editClientBtn" data-id="<?= $row['id'] ?>"
-                                        data-json='<?= json_encode($row) ?>'><i class="fa fa-edit"></i> Edit</button>
-                                    <button class="btn btn-sm btn-danger deleteClientBtn" data-id="<?= $row['id'] ?>"
-                                        data-email="<?= htmlspecialchars($row['email']) ?>"><i class="fa fa-trash"></i>
-                                        Delete</button>
-                                </td>
-                            </tr>
+                                <tr>
+                                    <td><?= $i++ ?></td>
+                                    <td><?= htmlspecialchars($row['firstname']) ?></td>
+                                    <td><?= htmlspecialchars($row['lastname']) ?></td>
+                                    <td><?= htmlspecialchars($row['email']) ?></td>
+                                    <td><?= htmlspecialchars($row['contact']) ?></td>
+                                    <td><?= htmlspecialchars($row['gender']) ?></td>
+                                    <td><?= $row['date_created'] ?></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-info editClientBtn" data-id="<?= $row['id'] ?>"
+                                            data-json='<?= json_encode($row) ?>'><i class="fa fa-edit"></i> Edit</button>
+                                        <button class="btn btn-sm btn-danger deleteClientBtn" data-id="<?= $row['id'] ?>"
+                                            data-email="<?= htmlspecialchars($row['email']) ?>"><i class="fa fa-trash"></i>
+                                            Delete</button>
+                                    </td>
+                                </tr>
                             <?php endwhile; ?>
                         </tbody>
                     </table>
@@ -136,8 +136,8 @@ if (!$clients) {
     </div>
 </div>
 <script>
-function getUserForm(data = {}) {
-    return `
+    function getUserForm(data = {}) {
+        return `
     <form id="userForm">
         <input type="hidden" name="id" value="${data.id || ''}">
         <div class="form-group">
@@ -171,10 +171,10 @@ function getUserForm(data = {}) {
         <button type="submit" class="btn btn-primary">${data.id ? 'Update' : 'Create'} User</button>
     </form>
     `;
-}
+    }
 
-function getClientForm(data = {}) {
-    return `
+    function getClientForm(data = {}) {
+        return `
     <form id="clientForm">
         <input type="hidden" name="id" value="${data.id || ''}">
         <div class="form-group">
@@ -209,140 +209,98 @@ function getClientForm(data = {}) {
         <button type="submit" class="btn btn-primary">${data.id ? 'Update' : 'Create'} Client</button>
     </form>
     `;
-}
-$(document).ready(function() {
-    $('#createUserBtn').on('click', function() {
-        $('#userModalLabel').text('Create User');
-        $('#userModal .modal-body').html(getUserForm());
-        $('#userModal').modal('show');
-    });
-    $('.editUserBtn').on('click', function() {
-        var data = $(this).data('json');
-        $('#userModalLabel').text('Edit User');
-        $('#userModal .modal-body').html(getUserForm(data));
-        $('#userModal').modal('show');
-    });
-    $('#createClientBtn').on('click', function() {
-        $('#userModalLabel').text('Create Client');
-        $('#userModal .modal-body').html(getClientForm());
-        $('#userModal').modal('show');
-    });
-    $('.editClientBtn').on('click', function() {
-        var data = $(this).data('json');
-        $('#userModalLabel').text('Edit Client');
-        $('#userModal .modal-body').html(getClientForm(data));
-        $('#userModal').modal('show');
-    });
-
-    // AJAX for user form
-    $(document).on('submit', '#userForm', function(e) {
-        e.preventDefault();
-        var form = $(this)[0];
-        var formData = new FormData(form);
-        if (typeof start_loader === 'function') start_loader();
-        $.ajax({
-            url: '../classes/Users.php?f=save',
-            data: formData,
-            cache: false,
-            contentType: false,
-            processData: false,
-            method: 'POST',
-            success: function(resp) {
-                if (typeof end_loader === 'function') end_loader();
-                if (resp == 1) {
-                    if (typeof alert_toast === 'function') alert_toast(
-                        'User saved successfully!', 'success');
-                    else alert('User saved successfully!');
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1200);
-                } else if (resp == 2) {
-                    if (typeof alert_toast === 'function') alert_toast(
-                        'Username already exists!', 'error');
-                    else alert('Username already exists!');
-                } else {
-                    if (typeof alert_toast === 'function') alert_toast('Error: ' + resp,
-                        'error');
-                    else alert('Error: ' + resp);
-                }
-            },
-            error: function(xhr) {
-                if (typeof end_loader === 'function') end_loader();
-                if (typeof alert_toast === 'function') alert_toast('AJAX error: ' + xhr
-                    .status + ' ' + xhr.statusText, 'error');
-                else alert('AJAX error: ' + xhr.status + ' ' + xhr.statusText);
-            }
+    }
+    $(document).ready(function () {
+        $('#createUserBtn').on('click', function () {
+            $('#userModalLabel').text('Create User');
+            $('#userModal .modal-body').html(getUserForm());
+            $('#userModal').modal('show');
         });
-    });
-    // AJAX for client form
-    $(document).on('submit', '#clientForm', function(e) {
-        e.preventDefault();
-        var form = $(this)[0];
-        var formData = new FormData(form);
-        if (typeof start_loader === 'function') start_loader();
-        $.ajax({
-            url: '../classes/handler.php?f=save_client',
-            data: formData,
-            cache: false,
-            contentType: false,
-            processData: false,
-            method: 'POST',
-            success: function(resp) {
-                if (typeof end_loader === 'function') end_loader();
-                try {
-                    var data = typeof resp === 'string' ? JSON.parse(resp) : resp;
-                    if (data.status === 'success') {
-                        if (typeof alert_toast === 'function') alert_toast(
-                            'Client saved successfully!', 'success');
-                        else alert('Client saved successfully!');
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1200);
-                    } else {
-                        if (typeof alert_toast === 'function') alert_toast('Error: ' + (data
-                            .msg || resp), 'error');
-                        else alert('Error: ' + (data.msg || resp));
-                    }
-                } catch (e) {
-                    if (typeof alert_toast === 'function') alert_toast('Error: ' + resp,
-                        'error');
-                    else alert('Error: ' + resp);
-                }
-            },
-            error: function(xhr) {
-                if (typeof end_loader === 'function') end_loader();
-                if (typeof alert_toast === 'function') alert_toast('AJAX error: ' + xhr
-                    .status + ' ' + xhr.statusText, 'error');
-                else alert('AJAX error: ' + xhr.status + ' ' + xhr.statusText);
-            }
+        $('.editUserBtn').on('click', function () {
+            var data = $(this).data('json');
+            $('#userModalLabel').text('Edit User');
+            $('#userModal .modal-body').html(getUserForm(data));
+            $('#userModal').modal('show');
         });
-    });
+        $('#createClientBtn').on('click', function () {
+            $('#userModalLabel').text('Create Client');
+            $('#userModal .modal-body').html(getClientForm());
+            $('#userModal').modal('show');
+        });
+        $('.editClientBtn').on('click', function () {
+            var data = $(this).data('json');
+            $('#userModalLabel').text('Edit Client');
+            $('#userModal .modal-body').html(getClientForm(data));
+            $('#userModal').modal('show');
+        });
 
-    $('.deleteClientBtn').on('click', function() {
-        var id = $(this).data('id');
-        var email = $(this).data('email');
-        if (confirm('Are you sure you want to delete client: ' + email + '?')) {
+        // AJAX for user form
+        $(document).on('submit', '#userForm', function (e) {
+            e.preventDefault();
+            var form = $(this)[0];
+            var formData = new FormData(form);
             if (typeof start_loader === 'function') start_loader();
             $.ajax({
-                url: '../classes/handler.php?f=delete_client',
-                data: {
-                    id: id
-                },
+                url: '../classes/Users.php?f=save',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
                 method: 'POST',
-                success: function(resp) {
+                success: function (resp) {
+                    if (typeof end_loader === 'function') end_loader();
+                    if (resp == 1) {
+                        if (typeof alert_toast === 'function') alert_toast(
+                            'User saved successfully!', 'success');
+                        else alert('User saved successfully!');
+                        setTimeout(function () {
+                            location.reload();
+                        }, 1200);
+                    } else if (resp == 2) {
+                        if (typeof alert_toast === 'function') alert_toast(
+                            'Username already exists!', 'error');
+                        else alert('Username already exists!');
+                    } else {
+                        if (typeof alert_toast === 'function') alert_toast('Error: ' + resp,
+                            'error');
+                        else alert('Error: ' + resp);
+                    }
+                },
+                error: function (xhr) {
+                    if (typeof end_loader === 'function') end_loader();
+                    if (typeof alert_toast === 'function') alert_toast('AJAX error: ' + xhr
+                        .status + ' ' + xhr.statusText, 'error');
+                    else alert('AJAX error: ' + xhr.status + ' ' + xhr.statusText);
+                }
+            });
+        });
+        // AJAX for client form
+        $(document).on('submit', '#clientForm', function (e) {
+            e.preventDefault();
+            var form = $(this)[0];
+            var formData = new FormData(form);
+            if (typeof start_loader === 'function') start_loader();
+            $.ajax({
+                url: '../classes/handler.php?f=save_client',
+                data: formData,
+                cache: false,
+                contentType: false,
+                processData: false,
+                method: 'POST',
+                success: function (resp) {
                     if (typeof end_loader === 'function') end_loader();
                     try {
                         var data = typeof resp === 'string' ? JSON.parse(resp) : resp;
                         if (data.status === 'success') {
                             if (typeof alert_toast === 'function') alert_toast(
-                                'Client deleted successfully!', 'success');
-                            else alert('Client deleted successfully!');
-                            setTimeout(function() {
+                                'Client saved successfully!', 'success');
+                            else alert('Client saved successfully!');
+                            setTimeout(function () {
                                 location.reload();
                             }, 1200);
                         } else {
-                            if (typeof alert_toast === 'function') alert_toast('Error: ' + (
-                                data.msg || resp), 'error');
+                            if (typeof alert_toast === 'function') alert_toast('Error: ' + (data
+                                .msg || resp), 'error');
                             else alert('Error: ' + (data.msg || resp));
                         }
                     } catch (e) {
@@ -351,14 +309,56 @@ $(document).ready(function() {
                         else alert('Error: ' + resp);
                     }
                 },
-                error: function(xhr) {
+                error: function (xhr) {
                     if (typeof end_loader === 'function') end_loader();
                     if (typeof alert_toast === 'function') alert_toast('AJAX error: ' + xhr
                         .status + ' ' + xhr.statusText, 'error');
                     else alert('AJAX error: ' + xhr.status + ' ' + xhr.statusText);
                 }
             });
-        }
+        });
+
+        $('.deleteClientBtn').on('click', function () {
+            var id = $(this).data('id');
+            var email = $(this).data('email');
+            if (confirm('Are you sure you want to delete client: ' + email + '?')) {
+                if (typeof start_loader === 'function') start_loader();
+                $.ajax({
+                    url: '../classes/handler.php?f=delete_client',
+                    data: {
+                        id: id
+                    },
+                    method: 'POST',
+                    success: function (resp) {
+                        if (typeof end_loader === 'function') end_loader();
+                        try {
+                            var data = typeof resp === 'string' ? JSON.parse(resp) : resp;
+                            if (data.status === 'success') {
+                                if (typeof alert_toast === 'function') alert_toast(
+                                    'Client deleted successfully!', 'success');
+                                else alert('Client deleted successfully!');
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 1200);
+                            } else {
+                                if (typeof alert_toast === 'function') alert_toast('Error: ' + (
+                                    data.msg || resp), 'error');
+                                else alert('Error: ' + (data.msg || resp));
+                            }
+                        } catch (e) {
+                            if (typeof alert_toast === 'function') alert_toast('Error: ' + resp,
+                                'error');
+                            else alert('Error: ' + resp);
+                        }
+                    },
+                    error: function (xhr) {
+                        if (typeof end_loader === 'function') end_loader();
+                        if (typeof alert_toast === 'function') alert_toast('AJAX error: ' + xhr
+                            .status + ' ' + xhr.statusText, 'error');
+                        else alert('AJAX error: ' + xhr.status + ' ' + xhr.statusText);
+                    }
+                });
+            }
+        });
     });
-});
 </script>
