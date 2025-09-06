@@ -1179,6 +1179,8 @@ class Master extends DBConnection
                 $stmt->close();
                 if ($row && $row['paid'] != 1) {
                     $paid = 1;
+                    // Log the Paypack API response and order update
+                    error_log("[Paypack] Marking order as paid. Order ID: $order_id, Paypack Ref: $paypack_ref, Momo: $momo_number, API Result: " . json_encode($result));
                     $stmt = $this->conn->prepare("UPDATE orders SET paid = ? WHERE id = ?");
                     $stmt->bind_param("ii", $paid, $order_id);
                     $stmt->execute();
