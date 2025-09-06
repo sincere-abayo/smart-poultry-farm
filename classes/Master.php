@@ -142,13 +142,20 @@ class Master extends DBConnection
             }
 
             // Handle MOMO payment
-            if ($payment_method === "MoMoPay") {
-                $paid = 1;
-                $stmt = $this->conn->prepare("UPDATE orders SET paid = ? WHERE id = ?");
-                $stmt->bind_param("ii", $paid, $order_id);
-                if (!$stmt->execute()) {
-                    throw new Exception("Failed to update payment status");
+            if ($payment_method === "MoMoPay" || $payment_method === "momo") {
+                require_once(__DIR__ . '/PaypackHandler.php');
+                $paypack = new PaypackHandler();
+                // Initiate payment
+                $momoResult = $paypack->cashin($amount, $momo_number);
+                if (!$momoResult['success']) {
+                    throw new Exception("MTN Payment failed to initiate: " . $momoResult['error']);
                 }
+                $paypack_ref = $momoResult['ref'];
+                // Save paypack_ref in the orders table
+                $stmt = $this->conn->prepare("UPDATE orders SET paypack_ref = ? WHERE id = ?");
+                $stmt->bind_param("si", $paypack_ref, $order_id);
+                $stmt->execute();
+                // Do not poll here; let frontend poll and call a new endpoint to check status
             }
 
             // Clear cart
@@ -172,6 +179,7 @@ class Master extends DBConnection
                 'message' => 'Order placed successfully! Payment confirmation sent to your email and phone.'
             ];
         } catch (Throwable $e) {
+            error_log('Order Exception: ' . $e->getMessage() . ' in ' . $e->getFile() . ':' . $e->getLine() . "\nStack trace:\n" . $e->getTraceAsString());
             try {
                 if ($this->conn && $this->conn->connect_errno === 0) {
                     $this->conn->rollback();
@@ -181,7 +189,8 @@ class Master extends DBConnection
             return [
                 'status' => 'failed',
                 'msg' => 'An error occurred while processing your order. Please try again.',
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(), // Expose real error for debugging
+                'trace' => $e->getTraceAsString() // Optionally include stack trace
             ];
         }
     }
@@ -1145,6 +1154,45 @@ class Master extends DBConnection
                 'status' => 'failed',
                 'msg' => $e->getMessage()
             ]);
+        }
+    }
+
+    // Add new method for async payment status check
+    public function check_paypack_status()
+    {
+        try {
+            if (!isset($_POST['order_id']) || !isset($_POST['paypack_ref']) || !isset($_POST['momo_number'])) {
+                throw new Exception("Missing required fields");
+            }
+            $order_id = intval($_POST['order_id']);
+            $paypack_ref = $_POST['paypack_ref'];
+            $momo_number = $_POST['momo_number'];
+            require_once(__DIR__ . '/PaypackHandler.php');
+            $paypack = new PaypackHandler();
+            $poll = $paypack->pollStatus($paypack_ref, $momo_number);
+            if ($poll['success'] && $poll['status'] === 'successful') {
+                // Only mark as paid if not already paid
+                $stmt = $this->conn->prepare("SELECT paid FROM orders WHERE id = ?");
+                $stmt->bind_param("i", $order_id);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                $row = $result->fetch_assoc();
+                $stmt->close();
+                if ($row && $row['paid'] != 1) {
+                    $paid = 1;
+                    $stmt = $this->conn->prepare("UPDATE orders SET paid = ? WHERE id = ?");
+                    $stmt->bind_param("ii", $paid, $order_id);
+                    $stmt->execute();
+                }
+                return json_encode(['status' => 'success', 'msg' => 'Payment successful']);
+            } else if ($poll['success'] && $poll['status'] === 'failed') {
+                return json_encode(['status' => 'failed', 'msg' => 'Payment failed']);
+            } else {
+                // Do not update order if still pending
+                return json_encode(['status' => 'pending', 'msg' => 'Payment pending']);
+            }
+        } catch (Throwable $e) {
+            return json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
         }
     }
 }
