@@ -60,6 +60,10 @@ class NotificationManager
                 'app_name' => $this->appName,
                 'app_url' => $this->appUrl
             ];
+            // Include password if present
+            if (!empty($userData['password'])) {
+                $templateData['password'] = $userData['password'];
+            }
 
             $templates = $this->notificationService->getEmailTemplates();
             $welcomeTemplate = $templates['welcome'];
@@ -77,6 +81,7 @@ class NotificationManager
             return $result;
 
         } catch (Exception $e) {
+            error_log('sendWelcomeEmail error: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
             return [
                 'success' => false,
                 'message' => 'Failed to send welcome email: ' . $e->getMessage()

@@ -2,7 +2,7 @@
 <aside class="main-sidebar sidebar-dark-primary bg-purple elevation-4 sidebar-no-expand">
     <!-- Brand Logo -->
     <a href="<?php echo base_url ?>admin" class="brand-link bg-maroon text-sm">
-        <img src="<?php echo validate_image($_settings->info('logo'))?>" alt="Store Logo"
+        <img src="<?php echo validate_image($_settings->info('logo')) ?>" alt="Store Logo"
             class="brand-image img-circle elevation-3"
             style="opacity: .8;width: 1.5rem;height: 1.5rem;max-height: unset">
         <span class="brand-text font-weight-light"><?php echo $_settings->info('short_name') ?></span>
@@ -75,6 +75,13 @@
                     </a>
                 </li>
 
+                <li class="nav-item dropdown">
+                    <a href="<?php echo base_url ?>admin/?page=user/list" class="nav-link nav-user_list">
+                        <i class="nav-icon fas fa-users"></i>
+                        <p>User Management</p>
+                    </a>
+                </li>
+
                 <li class="nav-header">Maintenance</li>
 
                 <li class="nav-item dropdown">
@@ -110,21 +117,21 @@
 
 <!-- Highlight current page script -->
 <script>
-$(document).ready(function() {
-    var page = '<?php echo isset($_GET['page']) ? $_GET['page'] : 'home' ?>';
-    var s = '<?php echo isset($_GET['s']) ? $_GET['s'] : '' ?>';
-    page = page.replace(/\//g, '_');
+    $(document).ready(function () {
+        var page = '<?php echo isset($_GET['page']) ? $_GET['page'] : 'home' ?>';
+        var s = '<?php echo isset($_GET['s']) ? $_GET['s'] : '' ?>';
+        page = page.replace(/\//g, '_');
 
-    if ($('.nav-link.nav-' + page).length > 0) {
-        $('.nav-link.nav-' + page).addClass('active')
-        if ($('.nav-link.nav-' + page).hasClass('tree-item') == true) {
-            $('.nav-link.nav-' + page).closest('.nav-treeview').siblings('a').addClass('active')
-            $('.nav-link.nav-' + page).closest('.nav-treeview').parent().addClass('menu-open')
+        if ($('.nav-link.nav-' + page).length > 0) {
+            $('.nav-link.nav-' + page).addClass('active')
+            if ($('.nav-link.nav-' + page).hasClass('tree-item') == true) {
+                $('.nav-link.nav-' + page).closest('.nav-treeview').siblings('a').addClass('active')
+                $('.nav-link.nav-' + page).closest('.nav-treeview').parent().addClass('menu-open')
+            }
+            if ($('.nav-link.nav-' + page).hasClass('nav-is-tree') == true) {
+                $('.nav-link.nav-' + page).parent().addClass('menu-open')
+            }
         }
-        if ($('.nav-link.nav-' + page).hasClass('nav-is-tree') == true) {
-            $('.nav-link.nav-' + page).parent().addClass('menu-open')
-        }
-    }
-    $('.nav-link.active').addClass('bg-maroon')
-})
+        $('.nav-link.active').addClass('bg-maroon')
+    })
 </script>

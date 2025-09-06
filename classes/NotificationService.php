@@ -501,6 +501,10 @@ class NotificationService extends DBConnection
                                                 <td style="padding: 8px 0; color: #2c3e50;">{contact}</td>
                                             </tr>
                                             <tr>
+                                                <td style="padding: 8px 0; color: #34495e; font-weight: 600;">🔑 Password:</td>
+                                                <td style="padding: 8px 0; color: #2c3e50;">{password}</td>
+                                            </tr>
+                                            <tr>
                                                 <td style="padding: 8px 0; color: #34495e; font-weight: 600;">📅 Joined:</td>
                                                 <td style="padding: 8px 0; color: #2c3e50;">{registration_date}</td>
                                             </tr>
