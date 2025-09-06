@@ -295,14 +295,15 @@
         var total = 0
 
         $('.total-amount').each(function () {
-            amount = $(this).text()
-            amount = amount.replace(/\,/g, '')
-            amount = parseFloat(amount)
-            total += amount
+            var amount = $(this).text();
+            amount = amount.replace('Frw', '').replace(/\,/g, '').trim(); // Remove 'Frw' and commas
+            amount = parseFloat(amount);
+            total += amount;
         })
         $('#grand-total').text('Frw ' + parseFloat(total).toLocaleString('en-US'))
         $('#grand-total-final').text('Frw ' + parseFloat(total).toLocaleString('en-US'))
     }
+
     function qty_change($type, _this) {
         var qty = _this.closest('.cart-item').find('.cart-qty').val()
         var price = _this.closest('.cart-item').find('.price').text()
@@ -326,7 +327,10 @@
         $.ajax({
             url: 'classes/handler.php?f=update_cart_qty',
             method: 'POST',
-            data: { id: cart_id, quantity: qty },
+            data: {
+                id: cart_id,
+                quantity: qty
+            },
             dataType: 'json',
             error: err => {
                 console.log(err)
@@ -344,6 +348,7 @@
 
         })
     }
+
     function rem_item(id) {
         $('.modal').modal('hide')
         var _this = $('.rem_item[data-id="' + id + '"]')
@@ -353,7 +358,9 @@
         $.ajax({
             url: 'classes/Master.php?f=delete_cart',
             method: 'POST',
-            data: { id: id },
+            data: {
+                id: id
+            },
             dataType: 'json',
             error: err => {
                 console.log(err)
@@ -362,7 +369,9 @@
             },
             success: function (resp) {
                 if (!!resp.status && resp.status == 'success') {
-                    item.hide('slow', function () { item.remove() })
+                    item.hide('slow', function () {
+                        item.remove()
+                    })
                     calc_total()
                     end_loader()
                 } else {
@@ -373,6 +382,7 @@
 
         })
     }
+
     function empty_cart() {
         start_loader();
         $.ajax({
