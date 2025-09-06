@@ -156,6 +156,51 @@ endwhile;
         font-size: 0.875rem;
     }
 
+    .stripe-features {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+
+    .stripe-features .feature {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .stripe-features .feature i {
+        font-size: 1.5rem;
+        color: #28a745;
+        margin-bottom: 0.5rem;
+    }
+
+    .stripe-features .feature span {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+        .stripe-features {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .stripe-features .feature {
+            flex-direction: row;
+            justify-content: flex-start;
+        }
+
+        .stripe-features .feature i {
+            margin-right: 0.5rem;
+            margin-bottom: 0;
+        }
+    }
+
     .momo-input {
         margin-top: var(--spacing-md);
         padding: var(--spacing-md);
@@ -269,6 +314,41 @@ endwhile;
                                         <label for="momo_number" class="form-label">Enter MoMo Number</label>
                                         <input type="text" name="momo_number" id="momo_number" class="form-control"
                                             placeholder="07XXXXXXXX" />
+                                    </div>
+                                </div>
+
+                                <div class="payment-method" onclick="selectPaymentMethod('stripe')">
+                                    <div class="payment-method-header">
+                                        <div class="payment-icon">
+                                            <i class="fab fa-cc-stripe"></i>
+                                        </div>
+                                        <div>
+                                            <div class="payment-title">Stripe Payment</div>
+                                            <div class="payment-description">Secure checkout with Stripe (redirects to
+                                                secure payment page)
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="stripe-payment-info" id="stripe-payment-info" style="display: none;">
+                                        <div class="alert alert-info">
+                                            <i class="fas fa-shield-alt"></i>
+                                            <strong>Secure Payment:</strong> You will be redirected to Stripe's secure
+                                            checkout page to complete your payment safely.
+                                        </div>
+                                        <div class="stripe-features">
+                                            <div class="feature">
+                                                <i class="fas fa-lock"></i>
+                                                <span>256-bit SSL encryption</span>
+                                            </div>
+                                            <div class="feature">
+                                                <i class="fas fa-credit-card"></i>
+                                                <span>All major cards accepted</span>
+                                            </div>
+                                            <div class="feature">
+                                                <i class="fas fa-mobile-alt"></i>
+                                                <span>Mobile optimized</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -397,6 +477,13 @@ endwhile;
         // Show relevant input section
         if (method === 'momo') {
             $('.momo-input').show();
+            $('#stripe-payment-info').hide();
+        } else if (method === 'stripe') {
+            $('#stripe-payment-info').show();
+            $('.momo-input').hide();
+        } else {
+            $('#stripe-payment-info').hide();
+            $('.momo-input').hide();
         }
 
         // Update hidden payment method field
@@ -419,6 +506,36 @@ endwhile;
         processOrder("momo", 1);
     }
 
+    // Stripe Payment handler
+    function payWithStripe() {
+        var amount = $('[name="amount"]').val();
+        var orderType = $('[name="order_type"]:checked').val();
+        var deliveryAddress = $('[name="delivery_address"]').val().trim();
+
+        if (!amount || amount <= 0) {
+            alert_toast("Invalid order amount", "error");
+            return;
+        }
+
+        if (!orderType) {
+            alert_toast("Please select an order type", "error");
+            return;
+        }
+
+        // For delivery orders, validate address
+        if (orderType == '1' && !deliveryAddress) {
+            alert_toast("Please enter delivery address", "error");
+            return;
+        }
+
+        // Redirect to Stripe checkout page
+        var stripeUrl = 'stripe_checkout.php?amount=' + encodeURIComponent(amount) +
+            '&order_type=' + encodeURIComponent(orderType) +
+            '&delivery_address=' + encodeURIComponent(deliveryAddress);
+
+        window.location.href = stripeUrl;
+    }
+
     // Main submit function - determines which payment method to use
     function submitOrder() {
         // Check if a payment method is selected
@@ -431,6 +548,8 @@ endwhile;
 
         if (selectedMethod === 'momo') {
             payWithMomo();
+        } else if (selectedMethod === 'stripe') {
+            payWithStripe();
         } else {
             submitWithCOD();
         }
