@@ -151,6 +151,35 @@ class Master extends DBConnection
                 }
             }
 
+            // Handle MTN payment with Paypack
+            if ($payment_method === "mtn") {
+                require_once('PaypackHandler.php');
+                $paypack = new PaypackHandler();
+
+                $mtn_number = $args['mtn_number'] ?? '';
+                if (empty($mtn_number)) {
+                    throw new Exception("MTN number is required for MTN payment");
+                }
+
+                // Initiate cashin transaction
+                $cashinResult = $paypack->initiateCashin($amount, $mtn_number);
+
+                if (!$cashinResult['success']) {
+                    throw new Exception("Failed to initiate MTN payment: " . $cashinResult['error']);
+                }
+
+                // Store Paypack reference
+                $paypack_ref = $cashinResult['reference'];
+                $stmt = $this->conn->prepare("UPDATE orders SET payment_reference = ?, paid = 1 WHERE id = ?");
+                $stmt->bind_param("si", $paypack_ref, $order_id);
+                if (!$stmt->execute()) {
+                    throw new Exception("Failed to update payment reference");
+                }
+
+                // Mark as paid immediately after successful transaction initiation
+                $paid = 1;
+            }
+
             // Clear cart
             $this->conn->query("DELETE FROM cart WHERE client_id = {$client_id}");
 
@@ -418,14 +447,14 @@ class Master extends DBConnection
 
     /**
      * Send payment confirmation notifications
-     * 
+     *
      * @param int $order_id Order ID
      * @param int $client_id Client ID
      * @param float $amount Payment amount
      * @param string $payment_method Payment method
      * @return void
      */
-    private function sendPaymentNotifications($order_id, $client_id, $amount, $payment_method)
+    public function sendPaymentNotifications($order_id, $client_id, $amount, $payment_method)
     {
         try {
             // Load NotificationManager
