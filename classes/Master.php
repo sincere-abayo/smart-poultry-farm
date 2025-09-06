@@ -68,6 +68,124 @@ class Master extends DBConnection
         parent::__destruct();
     }
 
+    public function create_order_core($args)
+    {
+        try {
+            // Validate required fields
+            $client_id = $args['client_id'] ?? null;
+            $amount = $args['amount'] ?? null;
+            $payment_method = $args['payment_method'] ?? null;
+            $paid = $args['paid'] ?? null;
+            $order_type = $args['order_type'] ?? null;
+            $delivery_address = $args['delivery_address'] ?? '';
+            $momo_number = $args['momo_number'] ?? '';
+
+            if (!$client_id || !$amount || !$payment_method || $paid === null || !$order_type) {
+                throw new Exception("Missing required fields");
+            }
+
+            // Start transaction
+            if (!$this->conn->begin_transaction()) {
+                throw new Exception("Failed to start transaction");
+            }
+
+            // Create order record
+            $stmt = $this->conn->prepare("INSERT INTO orders (client_id, delivery_address, payment_method, amount, paid, order_type, status) VALUES (?, ?, ?, ?, ?, ?, 0)");
+            if (!$stmt) {
+                throw new Exception("Failed to prepare order statement: " . $this->conn->error);
+            }
+            if (!$stmt->bind_param("issdis", $client_id, $delivery_address, $payment_method, $amount, $paid, $order_type)) {
+                throw new Exception("Failed to bind order parameters: " . $stmt->error);
+            }
+            if (!$stmt->execute()) {
+                throw new Exception("Failed to create order: " . $stmt->error);
+            }
+            $order_id = $this->conn->insert_id;
+
+            // Get cart items
+            $cart_items = $this->conn->query("SELECT c.*, i.price, i.product_id FROM cart c INNER JOIN inventory i ON i.id = c.inventory_id WHERE c.client_id = " . intval($client_id));
+            if (!$cart_items) {
+                throw new Exception("Failed to retrieve cart items: " . $this->conn->error);
+            }
+            if ($cart_items->num_rows === 0) {
+                throw new Exception("Your cart is empty");
+            }
+
+            // Insert order items and update inventory
+            while ($item = $cart_items->fetch_assoc()) {
+                $total = $item['quantity'] * $item['price'];
+                $inventory_check = $this->conn->query("SELECT quantity FROM inventory WHERE id = " . intval($item['inventory_id']));
+                if (!$inventory_check || $inventory_check->num_rows === 0) {
+                    throw new Exception("Product not found in inventory");
+                }
+                $current_stock = $inventory_check->fetch_assoc()['quantity'];
+                if ($current_stock < $item['quantity']) {
+                    throw new Exception("Not enough stock available for " . $item['name']);
+                }
+                $stmt = $this->conn->prepare("INSERT INTO order_list (order_id, product_id, quantity, price, total) VALUES (?, ?, ?, ?, ?)");
+                if (!$stmt) {
+                    throw new Exception("Failed to prepare order item statement: " . $this->conn->error);
+                }
+                if (!$stmt->bind_param("iiidd", $order_id, $item['product_id'], $item['quantity'], $item['price'], $total)) {
+                    throw new Exception("Failed to bind order item parameters: " . $stmt->error);
+                }
+                if (!$stmt->execute()) {
+                    throw new Exception("Failed to create order item: " . $stmt->error);
+                }
+                $stmt = $this->conn->prepare("UPDATE inventory SET quantity = quantity - ? WHERE id = ? AND quantity >= ?");
+                if (!$stmt->bind_param("iii", $item['quantity'], $item['inventory_id'], $item['quantity'])) {
+                    throw new Exception("Failed to bind inventory update parameters: " . $stmt->error);
+                }
+                if (!$stmt->execute()) {
+                    throw new Exception("Failed to update inventory");
+                }
+            }
+
+            // Handle MOMO payment
+            if ($payment_method === "MoMoPay") {
+                $paid = 1;
+                $stmt = $this->conn->prepare("UPDATE orders SET paid = ? WHERE id = ?");
+                $stmt->bind_param("ii", $paid, $order_id);
+                if (!$stmt->execute()) {
+                    throw new Exception("Failed to update payment status");
+                }
+            }
+
+            // Clear cart
+            $this->conn->query("DELETE FROM cart WHERE client_id = {$client_id}");
+
+            // Commit transaction
+            if (!$this->conn->commit()) {
+                throw new Exception("Failed to commit transaction");
+            }
+
+            // Send payment confirmation notifications (optional, can be called outside)
+            try {
+                $this->sendPaymentNotifications($order_id, $client_id, $amount, $payment_method);
+            } catch (Exception $notificationError) {
+                error_log("Payment notification error: " . $notificationError->getMessage());
+            }
+
+            return [
+                'status' => 'success',
+                'order_id' => $order_id,
+                'message' => 'Order placed successfully! Payment confirmation sent to your email and phone.'
+            ];
+        } catch (Throwable $e) {
+            try {
+                if ($this->conn && $this->conn->connect_errno === 0) {
+                    $this->conn->rollback();
+                }
+            } catch (Exception $rollbackError) {
+            }
+            return [
+                'status' => 'failed',
+                'msg' => 'An error occurred while processing your order. Please try again.',
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
     function place_order()
     {
         try {
@@ -97,152 +215,35 @@ class Master extends DBConnection
                 throw new Exception("User not logged in");
             }
 
-            if (
-                !isset($_POST['amount']) || !isset($_POST['payment_method']) ||
-                !isset($_POST['paid']) || !isset($_POST['order_type'])
-            ) {
-                throw new Exception("Missing required fields");
-            }
-
-            $client_id = $_SESSION['userdata']['id'];
-            $amount = floatval($_POST['amount']);
-            $payment_method = $_POST['payment_method'];
-            $paid = intval($_POST['paid']);
-            $order_type = intval($_POST['order_type']);
-            $delivery_address = $_POST['delivery_address'] ?? '';
-            $momo_number = $_POST['momo_number'] ?? '';
-
-            // Start transaction
-            if (!$this->conn->begin_transaction()) {
-                throw new Exception("Failed to start transaction");
-            }
-
-            // Create order record
-            $stmt = $this->conn->prepare("INSERT INTO orders (client_id, delivery_address, payment_method, amount, paid, order_type, status) VALUES (?, ?, ?, ?, ?, ?, 0)");
-            if (!$stmt) {
-                throw new Exception("Failed to prepare order statement: " . $this->conn->error);
-            }
-
-            if (!$stmt->bind_param("issdis", $client_id, $delivery_address, $payment_method, $amount, $paid, $order_type)) {
-                throw new Exception("Failed to bind order parameters: " . $stmt->error);
-            }
-
-            if (!$stmt->execute()) {
-                throw new Exception("Failed to create order: " . $stmt->error);
-            }
-
-            $order_id = $this->conn->insert_id;
-
-            // Check database connection
-            if (!$this->conn || $this->conn->connect_errno !== 0) {
-                throw new Exception("Database connection lost");
-            }
-
-            // Get cart items
-            $cart_items = $this->conn->query("SELECT c.*, i.price, i.product_id 
-                FROM cart c 
-                INNER JOIN inventory i ON i.id = c.inventory_id 
-                WHERE c.client_id = " . intval($client_id));
-
-            if (!$cart_items) {
-                throw new Exception("Failed to retrieve cart items: " . $this->conn->error);
-            }
-
-            if ($cart_items->num_rows === 0) {
-                throw new Exception("Your cart is empty");
-            }
-
-            // Insert order items and update inventory
-            while ($item = $cart_items->fetch_assoc()) {
-                // Calculate total for this item
-                $total = $item['quantity'] * $item['price'];
-
-                // Check inventory availability
-                $inventory_check = $this->conn->query("SELECT quantity FROM inventory WHERE id = " . intval($item['inventory_id']));
-                if (!$inventory_check || $inventory_check->num_rows === 0) {
-                    throw new Exception("Product not found in inventory");
-                }
-
-                $current_stock = $inventory_check->fetch_assoc()['quantity'];
-                if ($current_stock < $item['quantity']) {
-                    throw new Exception("Not enough stock available for " . $item['name']);
-                }
-
-                // Insert order item
-                $stmt = $this->conn->prepare("INSERT INTO order_list (order_id, product_id, quantity, price, total) VALUES (?, ?, ?, ?, ?)");
-                if (!$stmt) {
-                    throw new Exception("Failed to prepare order item statement: " . $this->conn->error);
-                }
-
-                if (!$stmt->bind_param("iiidd", $order_id, $item['product_id'], $item['quantity'], $item['price'], $total)) {
-                    throw new Exception("Failed to bind order item parameters: " . $stmt->error);
-                }
-
-                if (!$stmt->execute()) {
-                    throw new Exception("Failed to create order item: " . $stmt->error);
-                }
-
-                // Update inventory
-                $stmt = $this->conn->prepare("UPDATE inventory SET quantity = quantity - ? WHERE id = ? AND quantity >= ?");
-                if (!$stmt->bind_param("iii", $item['quantity'], $item['inventory_id'], $item['quantity'])) {
-                    throw new Exception("Failed to bind inventory update parameters: " . $stmt->error);
-                }
-
-                if (!$stmt->execute()) {
-                    throw new Exception("Failed to update inventory");
-                }
-            }
-
-            // Handle MOMO payment
-            if ($payment_method === "MoMoPay") {
-                // Here you would integrate with actual MOMO API
-                // For now, we'll simulate a successful payment
-                $paid = 1;
-
-                // Update order payment status
-                $stmt = $this->conn->prepare("UPDATE orders SET paid = ? WHERE id = ?");
-                $stmt->bind_param("ii", $paid, $order_id);
-
-                if (!$stmt->execute()) {
-                    throw new Exception("Failed to update payment status");
-                }
-            }
-
-            // Clear cart
-            $this->conn->query("DELETE FROM cart WHERE client_id = {$client_id}");
-
-            // Verify database connection before commit
-            if (!$this->isConnected()) {
-                error_log("Database connection lost before commit");
-                if (!$this->reconnect()) {
-                    throw new Exception("Failed to reconnect to database before commit");
-                }
-            }
-
-            // Commit transaction
-            if (!$this->conn->commit()) {
-                throw new Exception("Failed to commit transaction");
-            }
-
-            // Send payment confirmation notifications
-            try {
-                $this->sendPaymentNotifications($order_id, $client_id, $amount, $payment_method);
-            } catch (Exception $notificationError) {
-                // Don't fail the order if notifications fail
-                error_log("Payment notification error: " . $notificationError->getMessage());
-            }
-
-            // Clear any buffered output
-            if (ob_get_length())
-                ob_clean();
-
-            // Send success response
-            echo json_encode([
-                'status' => 'success',
-                'order_id' => $order_id,
-                'message' => 'Order placed successfully! Payment confirmation sent to your email and phone.'
+            // Call the core order creation method
+            $order_result = $this->create_order_core([
+                'client_id' => $_SESSION['userdata']['id'],
+                'amount' => floatval($_POST['amount']),
+                'payment_method' => $_POST['payment_method'],
+                'paid' => intval($_POST['paid']),
+                'order_type' => intval($_POST['order_type']),
+                'delivery_address' => $_POST['delivery_address'] ?? '',
+                'momo_number' => $_POST['momo_number'] ?? ''
             ]);
-            exit;
+
+            // Handle the result from create_order_core
+            if ($order_result['status'] === 'success') {
+                // Clear any buffered output
+                if (ob_get_length())
+                    ob_clean();
+
+                // Send success response
+                echo json_encode($order_result);
+                exit;
+            } else {
+                // Clear any buffered output
+                if (ob_get_length())
+                    ob_clean();
+
+                // Send error response
+                echo json_encode($order_result);
+                exit;
+            }
 
         } catch (Throwable $e) {
 

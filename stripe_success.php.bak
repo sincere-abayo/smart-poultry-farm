@@ -1,0 +1,303 @@
+<?php
+/**
+ * Stripe Payment Success Page
+ * Handles successful payment returns from Stripe hosted checkout
+ */
+
+// Start output buffering to prevent header issues
+echo "<br>DEBUG: Start output buffering<br>";
+ob_start();
+
+// Enable error reporting for debugging
+echo "<br>DEBUG: Enable error reporting<br>";
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+// Debug: Output session and GET parameters
+echo "<br>DEBUG: Output session and GET parameters<br>";
+file_put_contents(
+    __DIR__ . '/stripe_success_debug.log',
+    "\n==== Stripe Success Debug ====" .
+    "\nTime: " . date('Y-m-d H:i:s') .
+    "\nGET: " . print_r($_GET, true) .
+    "\nSESSION: " . print_r($_SESSION ?? [], true) .
+    "\n==============================\n",
+    FILE_APPEND
+);
+
+// Get session ID from URL first
+echo "<br>DEBUG: Get session ID from URL<br>";
+$session_id = $_GET['session_id'] ?? '';
+
+// Initialize variables
+echo "<br>DEBUG: Initialize variables<br>";
+$success = false;
+$error = '';
+$order_id = null;
+$amount = 0;
+$currency = 'rwf';
+
+echo "<br>DEBUG: Session ID: " . htmlspecialchars($session_id) . "<br>";
+
+if ($session_id) {
+    try {
+        echo "<br>DEBUG: Including config.php<br>";
+        require_once('config.php');
+        echo "<br>DEBUG: config.php included successfully<br>";
+
+        echo "<br>DEBUG: Including StripeHandler.php<br>";
+        require_once('classes/StripeHandler.php');
+        echo "<br>DEBUG: StripeHandler.php included successfully<br>";
+
+        echo "<br>DEBUG: Including Master.php<br>";
+        require_once('classes/Master.php');
+        echo "<br>DEBUG: Master.php included successfully<br>";
+
+        echo "<br>DEBUG: Including NotificationManager.php<br>";
+        require_once('classes/NotificationManager.php');
+        echo "<br>DEBUG: NotificationManager.php included successfully<br>";
+
+        echo "<br>DEBUG: Creating StripeHandler instance<br>";
+        $stripeHandler = new StripeHandler();
+        echo "<br>DEBUG: StripeHandler created successfully<br>";
+
+        echo "<br>DEBUG: Retrieving checkout session from Stripe<br>";
+        $sessionResult = $stripeHandler->retrieveCheckoutSession($session_id);
+        echo "<br>DEBUG: Stripe API call completed<br>";
+
+        if ($sessionResult['success']) {
+            echo "<br>DEBUG: Stripe API call successful<br>";
+            $session = $sessionResult['session'];
+            echo "<br>DEBUG: Session data retrieved<br>";
+            echo "<br>DEBUG: Payment status: " . ($session['payment_status'] ?? 'not set') . "<br>";
+
+            // Check if payment was successful
+            if ($session['payment_status'] === 'paid') {
+                echo "<br>DEBUG: Payment status is 'paid'<br>";
+                // Get user ID from session metadata
+                $user_id = $session['metadata']['user_id'] ?? null;
+                echo "<br>DEBUG: User ID from metadata: " . ($user_id ?? 'not found') . "<br>";
+
+                // If no user_id in metadata, try to get from current session
+                if (!$user_id) {
+                    $user_id = $_SESSION['userdata']['id'] ?? $_SESSION['auth_user']['id'] ?? null;
+                    echo "<br>DEBUG: User ID from session: " . ($user_id ?? 'not found') . "<br>";
+                }
+
+                if ($user_id) {
+                    echo "<br>DEBUG: User ID found, processing order<br>";
+                    // Process the order
+                    echo "<br>DEBUG: Master class instantiated<br>";
+                    $master = new Master();
+                    echo "<br>DEBUG: Order placement attempted<br>";
+                    $orderResult = $master->place_order([
+                        'client_id' => $user_id,
+                        'amount' => $session['amount_total'] / 100, // Convert from cents
+                        'order_type' => $session['metadata']['order_type'] ?? '1',
+                        'delivery_address' => $session['metadata']['delivery_address'] ?? '',
+                        'payment_method' => 'stripe',
+                        'paid' => 1
+                    ]);
+
+                    if ($orderResult['status'] === 'success') {
+                        echo "<br>DEBUG: Order created successfully<br>";
+                        $success = true;
+                        $order_id = $orderResult['order_id'];
+                        $amount = $session['amount_total'] / 100;
+                        $currency = $session['currency'] ?? 'rwf';
+
+                        echo "<br>DEBUG: Sending notifications<br>";
+                        // Send payment confirmation notifications
+                        $notificationManager = new NotificationManager();
+
+                        // Try to get user data from session or use defaults
+                        $user_data = $_SESSION['userdata'] ?? $_SESSION['auth_user'] ?? [];
+                        $paymentData = [
+                            'user_email' => $user_data['email'] ?? 'user@example.com',
+                            'user_phone' => $user_data['contact'] ?? '+250700000000',
+                            'user_firstname' => $user_data['firstname'] ?? 'Customer',
+                            'user_lastname' => $user_data['lastname'] ?? '',
+                            'amount' => $amount,
+                            'currency' => $currency,
+                            'order_id' => $order_id,
+                            'payment_method' => 'Stripe',
+                            'payment_date' => date('Y-m-d H:i:s')
+                        ];
+
+                        $notificationManager->sendPaymentConfirmation($paymentData);
+                        echo "<br>DEBUG: Notifications sent<br>";
+                    } else {
+                        $error = 'Failed to create order: ' . ($orderResult['msg'] ?? 'Unknown error');
+                        echo "<br>DEBUG: Order creation failed: $error<br>";
+                    }
+                } else {
+                    $error = 'User session not found. Please contact support with your payment reference: ' . $session_id;
+                    echo "<br>DEBUG: No user ID found: $error<br>";
+                }
+            } else {
+                $error = 'Payment was not successful. Status: ' . $session['payment_status'];
+                echo "<br>DEBUG: Payment not successful: $error<br>";
+            }
+        } else {
+            $error = 'Failed to verify payment: ' . $sessionResult['error'];
+            echo "<br>DEBUG: Stripe API call failed: $error<br>";
+        }
+    } catch (Exception $e) {
+        $error = 'Payment verification failed: ' . $e->getMessage();
+        echo "<br>DEBUG: Exception caught: $error<br>";
+        echo "<br>DEBUG: Exception trace: " . $e->getTraceAsString() . "<br>";
+    }
+} else {
+    $error = 'No session ID provided';
+    echo "<br>DEBUG: No session ID provided<br>";
+}
+
+echo "<br>DEBUG: Processing complete. Success: " . ($success ? 'true' : 'false') . "<br>";
+echo "<br>DEBUG: Error: " . $error . "<br>";
+
+// Clear any output that might have been generated
+ob_clean();
+?>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title><?php echo $success ? 'Payment Successful' : 'Payment Error'; ?> - Smart Poultry Farm</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .result-container {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        max-width: 500px;
+        width: 90%;
+    }
+
+    .success-icon {
+        font-size: 4rem;
+        color: #28a745;
+        margin-bottom: 1rem;
+    }
+
+    .error-icon {
+        font-size: 4rem;
+        color: #dc3545;
+        margin-bottom: 1rem;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    }
+
+    .order-details {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+        margin: 1rem 0;
+    }
+
+    .debug-info {
+        background: #e9ecef;
+        border-radius: 5px;
+        padding: 0.5rem;
+        margin: 1rem 0;
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    </style>
+</head>
+
+<body>
+    <div class="result-container">
+        <?php if ($success): ?>
+        <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <h2 class="mb-3 text-success">Payment Successful!</h2>
+        <p class="text-muted mb-4">Your order has been placed successfully and payment has been processed.</p>
+
+        <?php if ($order_id): ?>
+        <div class="order-details">
+            <h5><i class="fas fa-receipt"></i> Order Details</h5>
+            <p class="mb-1"><strong>Order ID:</strong> #<?php echo $order_id; ?></p>
+            <p class="mb-1"><strong>Amount:</strong> Frw <?php echo number_format($amount); ?></p>
+            <p class="mb-1"><strong>Payment Method:</strong> Stripe</p>
+            <p class="mb-0"><strong>Payment ID:</strong> <?php echo htmlspecialchars($session_id); ?></p>
+        </div>
+        <?php endif; ?>
+
+        <p class="text-muted small mb-4">
+            <i class="fas fa-envelope"></i> A confirmation email and SMS have been sent to you.
+        </p>
+
+        <div class="d-grid gap-2">
+            <a href="./" class="btn btn-primary">
+                <i class="fas fa-home"></i> Back to Home
+            </a>
+            <a href="?p=my_account" class="btn btn-outline-secondary">
+                <i class="fas fa-user"></i> View My Orders
+            </a>
+        </div>
+        <?php else: ?>
+        <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h2 class="mb-3 text-danger">Payment Error</h2>
+        <p class="text-muted mb-4"><?php echo htmlspecialchars($error); ?></p>
+
+        <div class="debug-info">
+            <strong>Debug Info:</strong><br>
+            Session ID: <?php echo htmlspecialchars($session_id); ?><br>
+            <?php if (isset($session)): ?>
+            Payment Status: <?php echo $session['payment_status'] ?? 'Unknown'; ?><br>
+            Amount: <?php echo ($session['amount_total'] ?? 0) / 100; ?><br>
+            <?php endif; ?>
+        </div>
+
+        <p class="text-muted small mb-4">
+            You will be redirected to checkout in 5 seconds...
+        </p>
+        <div class="d-grid gap-2">
+            <a href="?p=checkout" class="btn btn-primary">
+                <i class="fas fa-arrow-left"></i> Back to Checkout
+            </a>
+            <a href="./" class="btn btn-outline-secondary">
+                <i class="fas fa-home"></i> Back to Home
+            </a>
+        </div>
+        <?php endif; ?>
+    </div>
+
+    <script>
+    // Auto-redirect on error after 5 seconds
+    <?php if (!$success): ?>
+    setTimeout(function() {
+        window.location.href = '?p=checkout';
+    }, 5000);
+    <?php endif; ?>
+    </script>
+</body>
+
+</html>
