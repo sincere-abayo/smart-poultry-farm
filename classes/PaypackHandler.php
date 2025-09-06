@@ -141,6 +141,48 @@ class PaypackHandler
     }
 
     /**
+     * Robust status check: use /transactions/find/{ref} for success/fail, fallback to /events/transactions for pending
+     */
+    public function checkTransactionStatus($ref, $number)
+    {
+        $token = $this->authenticate();
+        if (!$token) {
+            return ['success' => false, 'error' => 'Authentication failed'];
+        }
+        // Try /transactions/find/{ref} first
+        $url = $this->baseUrl . '/transactions/find/' . urlencode($ref);
+        $headers = [
+            'Content-Type: application/json',
+            'Accept: application/json',
+            'Authorization: Bearer ' . $token
+        ];
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
+        curl_setopt($ch, CURLOPT_HTTPGET, true);
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+        $data = json_decode($response, true);
+        if ($error || $httpCode == 404 || (isset($data['message']) && $data['message'] === 'transaction not found')) {
+            // Fallback to events for pending
+            return $this->pollStatus($ref, $number);
+        }
+        $status = $data['status'] ?? null;
+        if ($status === 'successful') {
+            return ['success' => true, 'status' => 'successful', 'raw' => $data];
+        } elseif ($status === 'failed') {
+            return ['success' => true, 'status' => 'failed', 'raw' => $data];
+        }
+        // If not clear, fallback to events
+        return $this->pollStatus($ref, $number);
+    }
+
+    /**
      * Helper for cURL requests
      */
     private function curlRequest($url, $data = null, $headers = [], $method = 'POST')

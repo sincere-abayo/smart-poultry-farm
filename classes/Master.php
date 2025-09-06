@@ -1169,14 +1169,13 @@ class Master extends DBConnection
             $momo_number = $_POST['momo_number'];
             require_once(__DIR__ . '/PaypackHandler.php');
             $paypack = new PaypackHandler();
-            $poll = $paypack->pollStatus($paypack_ref, $momo_number);
-            if ($poll['success'] && $poll['status'] === 'successful') {
+            $result = $paypack->checkTransactionStatus($paypack_ref, $momo_number);
+            if ($result['success'] && $result['status'] === 'successful') {
                 // Only mark as paid if not already paid
                 $stmt = $this->conn->prepare("SELECT paid FROM orders WHERE id = ?");
                 $stmt->bind_param("i", $order_id);
                 $stmt->execute();
-                $result = $stmt->get_result();
-                $row = $result->fetch_assoc();
+                $row = $stmt->get_result()->fetch_assoc();
                 $stmt->close();
                 if ($row && $row['paid'] != 1) {
                     $paid = 1;
@@ -1184,140 +1183,15 @@ class Master extends DBConnection
                     $stmt->bind_param("ii", $paid, $order_id);
                     $stmt->execute();
                 }
-                return json_encode(['status' => 'success', 'msg' => 'Payment successful']);
-            } else if ($poll['success'] && $poll['status'] === 'failed') {
-                return json_encode(['status' => 'failed', 'msg' => 'Payment failed']);
+                return json_encode(['status' => 'success', 'msg' => 'Payment successful', 'raw' => $result['raw'] ?? null]);
+            } else if ($result['success'] && $result['status'] === 'failed') {
+                return json_encode(['status' => 'failed', 'msg' => 'Payment failed', 'raw' => $result['raw'] ?? null]);
             } else {
                 // Do not update order if still pending
-                return json_encode(['status' => 'pending', 'msg' => 'Payment pending']);
+                return json_encode(['status' => 'pending', 'msg' => 'Payment pending', 'raw' => $result['raw'] ?? null]);
             }
         } catch (Throwable $e) {
             return json_encode(['status' => 'error', 'msg' => $e->getMessage()]);
-        }
-    }
-
-    // Add this method to the Master class
-    public function save_client()
-    {
-        try {
-            $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
-            $firstname = trim($_POST['firstname'] ?? '');
-            $lastname = trim($_POST['lastname'] ?? '');
-            $email = trim($_POST['email'] ?? '');
-            $contact = trim($_POST['contact'] ?? '');
-            $gender = trim($_POST['gender'] ?? '');
-            $password = $_POST['password'] ?? '';
-            $default_delivery_address = '';
-
-            if (!$firstname || !$lastname || !$email || !$contact || !$gender) {
-                throw new Exception('All required fields must be filled');
-            }
-            if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                throw new Exception('Invalid email format');
-            }
-            if ($id > 0) {
-                // Edit existing client
-                $sql = "UPDATE clients SET firstname=?, lastname=?, email=?, contact=?, gender=?";
-                $params = [$firstname, $lastname, $email, $contact, $gender];
-                $types = "sssss";
-                if (!empty($password)) {
-                    $sql .= ", password=?";
-                    $params[] = md5($password);
-                    $types .= "s";
-                }
-                $sql .= " WHERE id=?";
-                $params[] = $id;
-                $types .= "i";
-                $stmt = $this->conn->prepare($sql);
-                $stmt->bind_param($types, ...$params);
-                $save = $stmt->execute();
-                $stmt->close();
-                if ($save) {
-                    return json_encode(['status' => 'success', 'msg' => 'Client updated successfully']);
-                } else {
-                    throw new Exception($this->conn->error);
-                }
-            } else {
-                // Create new client
-                if (empty($password)) {
-                    $password = bin2hex(random_bytes(4)); // 8-char random default password
-                }
-                if (strlen($password) < 6) {
-                    throw new Exception('Password must be at least 6 characters long');
-                }
-                // Check for duplicate email
-                $stmt = $this->conn->prepare("SELECT COUNT(*) as count FROM clients WHERE email = ?");
-                $stmt->bind_param("s", $email);
-                $stmt->execute();
-                $result = $stmt->get_result();
-                $count = $result->fetch_assoc()['count'];
-                $stmt->close();
-                if ($count > 0) {
-                    throw new Exception('Email already exists. Please use a different email address.');
-                }
-                $hashed_password = md5($password);
-                $stmt = $this->conn->prepare("INSERT INTO clients (firstname, lastname, email, password, contact, gender, default_delivery_address, date_created) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
-                $stmt->bind_param("sssssss", $firstname, $lastname, $email, $hashed_password, $contact, $gender, $default_delivery_address);
-                if (!$stmt->execute()) {
-                    throw new Exception('Failed to create client: ' . $stmt->error);
-                }
-                $user_id = $this->conn->insert_id;
-                $stmt->close();
-                // Send welcome email
-                try {
-                    if (!class_exists('NotificationManager')) {
-                        require_once(__DIR__ . '/NotificationManager.php');
-                    }
-                    $notificationManager = new NotificationManager();
-                    $userData = [
-                        'firstname' => $firstname,
-                        'lastname' => $lastname,
-                        'email' => $email,
-                        'contact' => $contact,
-                        'password' => $password // include password in template
-                    ];
-                    $notificationManager->sendWelcomeEmail($userData);
-                } catch (Exception $e) {
-                    error_log('Welcome email error: ' . $e->getMessage());
-                }
-                return json_encode([
-                    'status' => 'success',
-                    'msg' => 'Client created successfully! Welcome email sent.',
-                    'user_id' => $user_id
-                ]);
-            }
-        } catch (Exception $e) {
-            return json_encode([
-                'status' => 'failed',
-                'msg' => $e->getMessage()
-            ]);
-        }
-    }
-
-    public function delete_client()
-    {
-        try {
-            if (!isset($_POST['id'])) {
-                throw new Exception('Missing client ID');
-            }
-            $id = intval($_POST['id']);
-            $stmt = $this->conn->prepare("DELETE FROM clients WHERE id = ?");
-            $stmt->bind_param("i", $id);
-            $save = $stmt->execute();
-            $stmt->close();
-            if ($save) {
-                return json_encode([
-                    'status' => 'success',
-                    'msg' => 'Client deleted successfully'
-                ]);
-            } else {
-                throw new Exception($this->conn->error);
-            }
-        } catch (Exception $e) {
-            return json_encode([
-                'status' => 'failed',
-                'msg' => $e->getMessage()
-            ]);
         }
     }
 }

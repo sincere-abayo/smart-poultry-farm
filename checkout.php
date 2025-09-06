@@ -13,231 +13,231 @@ while ($row = $qry->fetch_assoc()):
 endwhile;
 ?>
 <style>
-.checkout-container {
-    max-width: 1000px;
-    margin: 0 auto;
-}
-
-.checkout-header {
-    text-align: center;
-    margin-bottom: var(--spacing-xxl);
-}
-
-.checkout-title {
-    font-size: 2.5rem;
-    font-weight: 700;
-    color: var(--black);
-    margin-bottom: var(--spacing-md);
-}
-
-.checkout-subtitle {
-    color: var(--medium-gray);
-    font-size: 1.125rem;
-}
-
-.checkout-form {
-    background: var(--white);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-sm);
-    padding: var(--spacing-xxl);
-    margin-bottom: var(--spacing-xl);
-}
-
-.form-section {
-    margin-bottom: var(--spacing-xl);
-}
-
-.section-title {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: var(--black);
-    margin-bottom: var(--spacing-lg);
-    padding-bottom: var(--spacing-sm);
-    border-bottom: 2px solid var(--light-gray);
-}
-
-.order-type-options {
-    display: flex;
-    gap: var(--spacing-lg);
-    margin-bottom: var(--spacing-lg);
-}
-
-.order-type-option {
-    flex: 1;
-    position: relative;
-}
-
-.order-type-option input[type="radio"] {
-    position: absolute;
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-.order-type-option label {
-    display: block;
-    padding: var(--spacing-lg);
-    border: 2px solid var(--light-gray);
-    border-radius: var(--radius-md);
-    text-align: center;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    background: var(--white);
-}
-
-.order-type-option input[type="radio"]:checked+label {
-    border-color: var(--primary-color);
-    background: rgba(46, 125, 50, 0.1);
-    color: var(--primary-color);
-}
-
-.order-type-option label:hover {
-    border-color: var(--primary-color);
-}
-
-.address-section {
-    background: var(--light-gray);
-    padding: var(--spacing-lg);
-    border-radius: var(--radius-md);
-    margin-top: var(--spacing-lg);
-}
-
-.payment-methods {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-}
-
-.payment-method {
-    padding: var(--spacing-lg);
-    border: 2px solid var(--light-gray);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    background: var(--white);
-}
-
-.payment-method:hover {
-    border-color: var(--primary-color);
-    background: rgba(46, 125, 50, 0.05);
-}
-
-.payment-method.selected {
-    border-color: var(--primary-color);
-    background: rgba(46, 125, 50, 0.1);
-}
-
-.payment-method-header {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-sm);
-}
-
-.payment-icon {
-    width: 40px;
-    height: 40px;
-    background: var(--primary-color);
-    border-radius: var(--radius-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--white);
-    font-size: 1.25rem;
-}
-
-.payment-title {
-    font-weight: 600;
-    color: var(--black);
-}
-
-.payment-description {
-    color: var(--medium-gray);
-    font-size: 0.875rem;
-}
-
-.stripe-features {
-    display: flex;
-    justify-content: space-around;
-    margin-top: 1rem;
-    padding: 1rem;
-    background: #f8f9fa;
-    border-radius: 10px;
-}
-
-.stripe-features .feature {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-}
-
-.stripe-features .feature i {
-    font-size: 1.5rem;
-    color: #28a745;
-    margin-bottom: 0.5rem;
-}
-
-.stripe-features .feature span {
-    font-size: 0.9rem;
-    color: #6c757d;
-    font-weight: 500;
-}
-
-@media (max-width: 768px) {
-    .stripe-features {
-        flex-direction: column;
-        gap: 1rem;
+    .checkout-container {
+        max-width: 1000px;
+        margin: 0 auto;
     }
 
-    .stripe-features .feature {
-        flex-direction: row;
-        justify-content: flex-start;
-    }
-
-    .stripe-features .feature i {
-        margin-right: 0.5rem;
-        margin-bottom: 0;
-    }
-}
-
-.momo-input {
-    margin-top: var(--spacing-md);
-    padding: var(--spacing-md);
-    background: var(--light-gray);
-    border-radius: var(--radius-sm);
-}
-
-.total-summary {
-    background: var(--light-gray);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
-    margin-top: var(--spacing-xl);
-    position: sticky;
-    top: var(--spacing-lg);
-}
-
-.total-amount {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--primary-color);
-    text-align: center;
-    margin-bottom: var(--spacing-lg);
-}
-
-@media (max-width: 768px) {
-    .order-type-options {
-        flex-direction: column;
-    }
-
-    .checkout-form {
-        padding: var(--spacing-lg);
+    .checkout-header {
+        text-align: center;
+        margin-bottom: var(--spacing-xxl);
     }
 
     .checkout-title {
-        font-size: 2rem;
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--black);
+        margin-bottom: var(--spacing-md);
     }
-}
+
+    .checkout-subtitle {
+        color: var(--medium-gray);
+        font-size: 1.125rem;
+    }
+
+    .checkout-form {
+        background: var(--white);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-sm);
+        padding: var(--spacing-xxl);
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .form-section {
+        margin-bottom: var(--spacing-xl);
+    }
+
+    .section-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: var(--black);
+        margin-bottom: var(--spacing-lg);
+        padding-bottom: var(--spacing-sm);
+        border-bottom: 2px solid var(--light-gray);
+    }
+
+    .order-type-options {
+        display: flex;
+        gap: var(--spacing-lg);
+        margin-bottom: var(--spacing-lg);
+    }
+
+    .order-type-option {
+        flex: 1;
+        position: relative;
+    }
+
+    .order-type-option input[type="radio"] {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .order-type-option label {
+        display: block;
+        padding: var(--spacing-lg);
+        border: 2px solid var(--light-gray);
+        border-radius: var(--radius-md);
+        text-align: center;
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        background: var(--white);
+    }
+
+    .order-type-option input[type="radio"]:checked+label {
+        border-color: var(--primary-color);
+        background: rgba(46, 125, 50, 0.1);
+        color: var(--primary-color);
+    }
+
+    .order-type-option label:hover {
+        border-color: var(--primary-color);
+    }
+
+    .address-section {
+        background: var(--light-gray);
+        padding: var(--spacing-lg);
+        border-radius: var(--radius-md);
+        margin-top: var(--spacing-lg);
+    }
+
+    .payment-methods {
+        display: flex;
+        flex-direction: column;
+        gap: var(--spacing-md);
+    }
+
+    .payment-method {
+        padding: var(--spacing-lg);
+        border: 2px solid var(--light-gray);
+        border-radius: var(--radius-md);
+        cursor: pointer;
+        transition: all var(--transition-fast);
+        background: var(--white);
+    }
+
+    .payment-method:hover {
+        border-color: var(--primary-color);
+        background: rgba(46, 125, 50, 0.05);
+    }
+
+    .payment-method.selected {
+        border-color: var(--primary-color);
+        background: rgba(46, 125, 50, 0.1);
+    }
+
+    .payment-method-header {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-md);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .payment-icon {
+        width: 40px;
+        height: 40px;
+        background: var(--primary-color);
+        border-radius: var(--radius-sm);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--white);
+        font-size: 1.25rem;
+    }
+
+    .payment-title {
+        font-weight: 600;
+        color: var(--black);
+    }
+
+    .payment-description {
+        color: var(--medium-gray);
+        font-size: 0.875rem;
+    }
+
+    .stripe-features {
+        display: flex;
+        justify-content: space-around;
+        margin-top: 1rem;
+        padding: 1rem;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+
+    .stripe-features .feature {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+
+    .stripe-features .feature i {
+        font-size: 1.5rem;
+        color: #28a745;
+        margin-bottom: 0.5rem;
+    }
+
+    .stripe-features .feature span {
+        font-size: 0.9rem;
+        color: #6c757d;
+        font-weight: 500;
+    }
+
+    @media (max-width: 768px) {
+        .stripe-features {
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .stripe-features .feature {
+            flex-direction: row;
+            justify-content: flex-start;
+        }
+
+        .stripe-features .feature i {
+            margin-right: 0.5rem;
+            margin-bottom: 0;
+        }
+    }
+
+    .momo-input {
+        margin-top: var(--spacing-md);
+        padding: var(--spacing-md);
+        background: var(--light-gray);
+        border-radius: var(--radius-sm);
+    }
+
+    .total-summary {
+        background: var(--light-gray);
+        border-radius: var(--radius-lg);
+        padding: var(--spacing-xl);
+        margin-top: var(--spacing-xl);
+        position: sticky;
+        top: var(--spacing-lg);
+    }
+
+    .total-amount {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        text-align: center;
+        margin-bottom: var(--spacing-lg);
+    }
+
+    @media (max-width: 768px) {
+        .order-type-options {
+            flex-direction: column;
+        }
+
+        .checkout-form {
+            padding: var(--spacing-lg);
+        }
+
+        .checkout-title {
+            font-size: 2rem;
+        }
+    }
 </style>
 
 <section class="py-5">
@@ -381,259 +381,259 @@ endwhile;
     </div>
 </div>
 <script>
-// Handle form submission - the main function that processes the order
-function processOrder(paymentMethod, paid) {
-    var form = $('#place_order');
-    if (form.data('submitting')) {
-        return false;
-    }
+    // Handle form submission - the main function that processes the order
+    function processOrder(paymentMethod, paid) {
+        var form = $('#place_order');
+        if (form.data('submitting')) {
+            return false;
+        }
 
-    // Validate required fields
-    var amount = $('[name="amount"]').val();
-    var orderType = $('[name="order_type"]:checked').val();
-    var deliveryAddress = $('[name="delivery_address"]').val().trim();
+        // Validate required fields
+        var amount = $('[name="amount"]').val();
+        var orderType = $('[name="order_type"]:checked').val();
+        var deliveryAddress = $('[name="delivery_address"]').val().trim();
 
-    if (!amount || amount <= 0) {
-        alert_toast("Invalid order amount", "error");
-        return false;
-    }
+        if (!amount || amount <= 0) {
+            alert_toast("Invalid order amount", "error");
+            return false;
+        }
 
-    if (!orderType) {
-        alert_toast("Please select an order type", "error");
-        return false;
-    }
+        if (!orderType) {
+            alert_toast("Please select an order type", "error");
+            return false;
+        }
 
-    // For delivery orders, validate address
-    if (orderType == '1' && !deliveryAddress) {
-        alert_toast("Please enter delivery address", "error");
-        return false;
-    }
+        // For delivery orders, validate address
+        if (orderType == '1' && !deliveryAddress) {
+            alert_toast("Please enter delivery address", "error");
+            return false;
+        }
 
-    // Validate payment method selection
-    if (!$('.payment-method.selected').length) {
-        alert_toast("Please select a payment method", "error");
-        return false;
-    }
+        // Validate payment method selection
+        if (!$('.payment-method.selected').length) {
+            alert_toast("Please select a payment method", "error");
+            return false;
+        }
 
-    form.data('submitting', true);
-    start_loader();
+        form.data('submitting', true);
+        start_loader();
 
-    $('[name="payment_method"]').val(paymentMethod);
-    $('[name="paid"]').val(paid);
+        $('[name="payment_method"]').val(paymentMethod);
+        $('[name="paid"]').val(paid);
 
-    $('#payment-loader').show(); // Show loader before AJAX
-    $.ajax({
-        url: 'classes/handler.php?f=place_order',
-        method: 'POST',
-        data: form.serialize(),
-        dataType: "json",
-        timeout: 30000,
-        complete: function() {
-            // Loader will be hidden by pollPaypackStatus or on error
-        },
-        error: function(xhr, status, error) {
-            var errorMessage = "An error occurred while processing your order";
+        $('#payment-loader').show(); // Show loader before AJAX
+        $.ajax({
+            url: 'classes/handler.php?f=place_order',
+            method: 'POST',
+            data: form.serialize(),
+            dataType: "json",
+            timeout: 30000,
+            complete: function () {
+                // Loader will be hidden by pollPaypackStatus or on error
+            },
+            error: function (xhr, status, error) {
+                var errorMessage = "An error occurred while processing your order";
 
-            if (xhr.responseText) {
-                try {
-                    var response = JSON.parse(xhr.responseText);
-                    if (response && response.error) {
-                        errorMessage = response.error;
+                if (xhr.responseText) {
+                    try {
+                        var response = JSON.parse(xhr.responseText);
+                        if (response && response.error) {
+                            errorMessage = response.error;
+                        }
+                    } catch (e) {
+                        if (xhr.responseText.includes("Fatal error") ||
+                            xhr.responseText.includes("Parse error") ||
+                            xhr.responseText.includes("Warning")) {
+                            errorMessage = "A server error occurred. Please try again later.";
+                        }
                     }
-                } catch (e) {
-                    if (xhr.responseText.includes("Fatal error") ||
-                        xhr.responseText.includes("Parse error") ||
-                        xhr.responseText.includes("Warning")) {
-                        errorMessage = "A server error occurred. Please try again later.";
-                    }
+                } else if (status === "timeout") {
+                    errorMessage = "Request timed out. Please try again.";
+                } else if (status === "error" && !xhr.responseText) {
+                    errorMessage = "Could not connect to the server. Please check your connection.";
                 }
-            } else if (status === "timeout") {
-                errorMessage = "Request timed out. Please try again.";
-            } else if (status === "error" && !xhr.responseText) {
-                errorMessage = "Could not connect to the server. Please check your connection.";
-            }
 
-            alert_toast(errorMessage, "error");
-            end_loader();
-            form.data('submitting', false);
-        },
-        success: function(resp) {
-            if (resp.status === 'success' && resp.paypack_ref && resp.order_id) {
-                // Start polling for payment status
-                pollPaypackStatus(resp.order_id, resp.paypack_ref, $('#momo_number').val().trim());
-            } else if (resp.status === 'success') {
-                alert_toast("Order placed successfully! Payment confirmation sent to your email and phone.",
-                    "success");
-                setTimeout(function() {
-                    location.replace('./');
-                }, 3000);
-            } else {
-                alert_toast(resp.msg || resp.error || "Failed to place order", "error");
+                alert_toast(errorMessage, "error");
                 end_loader();
                 form.data('submitting', false);
-            }
-        }
-    });
-
-    return false;
-}
-
-// Async polling for Paypack payment status
-function pollPaypackStatus(order_id, paypack_ref, momo_number) {
-    var pollCount = 0;
-    var maxPolls = 10;
-    var pollInterval = setInterval(function() {
-        $.ajax({
-            url: 'classes/handler.php?f=check_paypack_status',
-            method: 'POST',
-            data: {
-                order_id: order_id,
-                paypack_ref: paypack_ref,
-                momo_number: momo_number
             },
-            dataType: 'json',
-            success: function(resp) {
-                if (resp.status === 'success') {
-                    clearInterval(pollInterval);
-                    $('#payment-loader').hide();
-                    alert_toast('Payment successful! Your order is now complete.', 'success');
-                    setTimeout(function() {
+            success: function (resp) {
+                if (resp.status === 'success' && resp.paypack_ref && resp.order_id) {
+                    // Start polling for payment status
+                    pollPaypackStatus(resp.order_id, resp.paypack_ref, $('#momo_number').val().trim());
+                } else if (resp.status === 'success') {
+                    alert_toast("Order placed successfully! Payment confirmation sent to your email and phone.",
+                        "success");
+                    setTimeout(function () {
                         location.replace('./');
                     }, 3000);
-                } else if (resp.status === 'failed' || resp.status === 'error') {
+                } else {
+                    alert_toast(resp.msg || resp.error || "Failed to place order", "error");
+                    end_loader();
+                    form.data('submitting', false);
+                }
+            }
+        });
+
+        return false;
+    }
+
+    // Async polling for Paypack payment status
+    function pollPaypackStatus(order_id, paypack_ref, momo_number) {
+        var pollCount = 0;
+        var maxPolls = 30; // Increased from 10 to 30 (up to 90 seconds)
+        var pollInterval = setInterval(function () {
+            $.ajax({
+                url: 'classes/handler.php?f=check_paypack_status',
+                method: 'POST',
+                data: {
+                    order_id: order_id,
+                    paypack_ref: paypack_ref,
+                    momo_number: momo_number
+                },
+                dataType: 'json',
+                success: function (resp) {
+                    if (resp.status === 'success') {
+                        clearInterval(pollInterval);
+                        $('#payment-loader').hide();
+                        alert_toast('Payment successful! Your order is now complete.', 'success');
+                        setTimeout(function () {
+                            location.replace('./');
+                        }, 3000);
+                    } else if (resp.status === 'failed' || resp.status === 'error') {
+                        clearInterval(pollInterval);
+                        $('#payment-loader').hide();
+                        alert_toast(resp.msg || 'Payment failed. Please try again.', 'error');
+                        end_loader();
+                        $('#place_order').data('submitting', false);
+                    }
+                    // If pending, do nothing, keep polling
+                },
+                error: function () {
                     clearInterval(pollInterval);
                     $('#payment-loader').hide();
-                    alert_toast(resp.msg || 'Payment failed. Please try again.', 'error');
+                    alert_toast('Error checking payment status.', 'error');
                     end_loader();
                     $('#place_order').data('submitting', false);
                 }
-                // If pending, do nothing, keep polling
-            },
-            error: function() {
+            });
+            pollCount++;
+            if (pollCount >= maxPolls) {
                 clearInterval(pollInterval);
                 $('#payment-loader').hide();
-                alert_toast('Error checking payment status.', 'error');
+                alert_toast('Payment confirmation timed out. Please check your phone or contact support.',
+                    'warning');
                 end_loader();
                 $('#place_order').data('submitting', false);
             }
-        });
-        pollCount++;
-        if (pollCount >= maxPolls) {
-            clearInterval(pollInterval);
-            $('#payment-loader').hide();
-            alert_toast('Payment confirmation timed out. Please check your phone or contact support.',
-                'warning');
-            end_loader();
-            $('#place_order').data('submitting', false);
-        }
-    }, 3000);
-}
+        }, 3000);
+    }
 
-// Payment method selection
-function selectPaymentMethod(method) {
-    // Remove selected class from all payment methods
-    $('.payment-method').removeClass('selected');
+    // Payment method selection
+    function selectPaymentMethod(method) {
+        // Remove selected class from all payment methods
+        $('.payment-method').removeClass('selected');
 
-    // Add selected class to clicked method
-    event.currentTarget.classList.add('selected');
+        // Add selected class to clicked method
+        event.currentTarget.classList.add('selected');
 
-    // Hide all input sections
-    $('.momo-input').hide();
-
-    // Show relevant input section
-    if (method === 'momo') {
-        $('.momo-input').show();
-        $('#stripe-payment-info').hide();
-    } else if (method === 'stripe') {
-        $('#stripe-payment-info').show();
+        // Hide all input sections
         $('.momo-input').hide();
-    } else {
-        $('#stripe-payment-info').hide();
-        $('.momo-input').hide();
-    }
 
-    // Update hidden payment method field
-    $('[name="payment_method"]').val(method);
-}
-
-// Cash on Delivery handler
-function submitWithCOD() {
-    processOrder("cod", 0);
-}
-
-// MOMO Payment handler
-function payWithMomo() {
-    var momo_number = $('#momo_number').val().trim();
-    if (!momo_number || !/^07\d{8}$/.test(momo_number)) {
-        alert_toast("Please enter a valid MTN number (e.g., 07XXXXXXXX)", "warning");
-        return;
-    }
-
-    processOrder("momo", 1);
-}
-
-// Stripe Payment handler
-function payWithStripe() {
-    var amount = $('[name="amount"]').val();
-    var orderType = $('[name="order_type"]:checked').val();
-    var deliveryAddress = $('[name="delivery_address"]').val().trim();
-
-    if (!amount || amount <= 0) {
-        alert_toast("Invalid order amount", "error");
-        return;
-    }
-
-    if (!orderType) {
-        alert_toast("Please select an order type", "error");
-        return;
-    }
-
-    // For delivery orders, validate address
-    if (orderType == '1' && !deliveryAddress) {
-        alert_toast("Please enter delivery address", "error");
-        return;
-    }
-
-    // Redirect to Stripe checkout page
-    var stripeUrl = 'stripe_checkout.php?amount=' + encodeURIComponent(amount) +
-        '&order_type=' + encodeURIComponent(orderType) +
-        '&delivery_address=' + encodeURIComponent(deliveryAddress);
-
-    window.location.href = stripeUrl;
-}
-
-// Main submit function - determines which payment method to use
-function submitOrder() {
-    // Check if a payment method is selected
-    if (!$('.payment-method.selected').length) {
-        alert_toast("Please select a payment method", "error");
-        return false;
-    }
-
-    var selectedMethod = $('.payment-method.selected').attr('onclick').match(/'([^']+)'/)[1];
-
-    if (selectedMethod === 'momo') {
-        payWithMomo();
-    } else if (selectedMethod === 'stripe') {
-        payWithStripe();
-    } else {
-        submitWithCOD();
-    }
-}
-
-// Order type change handler
-$(function() {
-    // Set default payment method selection
-    $('.payment-method').first().addClass('selected');
-
-    $('[name="order_type"]').change(function() {
-        if ($(this).val() == 2) {
-            $('.address-holder').hide('slow');
+        // Show relevant input section
+        if (method === 'momo') {
+            $('.momo-input').show();
+            $('#stripe-payment-info').hide();
+        } else if (method === 'stripe') {
+            $('#stripe-payment-info').show();
+            $('.momo-input').hide();
         } else {
-            $('.address-holder').show('slow');
+            $('#stripe-payment-info').hide();
+            $('.momo-input').hide();
         }
+
+        // Update hidden payment method field
+        $('[name="payment_method"]').val(method);
+    }
+
+    // Cash on Delivery handler
+    function submitWithCOD() {
+        processOrder("cod", 0);
+    }
+
+    // MOMO Payment handler
+    function payWithMomo() {
+        var momo_number = $('#momo_number').val().trim();
+        if (!momo_number || !/^07\d{8}$/.test(momo_number)) {
+            alert_toast("Please enter a valid MTN number (e.g., 07XXXXXXXX)", "warning");
+            return;
+        }
+
+        processOrder("momo", 1);
+    }
+
+    // Stripe Payment handler
+    function payWithStripe() {
+        var amount = $('[name="amount"]').val();
+        var orderType = $('[name="order_type"]:checked').val();
+        var deliveryAddress = $('[name="delivery_address"]').val().trim();
+
+        if (!amount || amount <= 0) {
+            alert_toast("Invalid order amount", "error");
+            return;
+        }
+
+        if (!orderType) {
+            alert_toast("Please select an order type", "error");
+            return;
+        }
+
+        // For delivery orders, validate address
+        if (orderType == '1' && !deliveryAddress) {
+            alert_toast("Please enter delivery address", "error");
+            return;
+        }
+
+        // Redirect to Stripe checkout page
+        var stripeUrl = 'stripe_checkout.php?amount=' + encodeURIComponent(amount) +
+            '&order_type=' + encodeURIComponent(orderType) +
+            '&delivery_address=' + encodeURIComponent(deliveryAddress);
+
+        window.location.href = stripeUrl;
+    }
+
+    // Main submit function - determines which payment method to use
+    function submitOrder() {
+        // Check if a payment method is selected
+        if (!$('.payment-method.selected').length) {
+            alert_toast("Please select a payment method", "error");
+            return false;
+        }
+
+        var selectedMethod = $('.payment-method.selected').attr('onclick').match(/'([^']+)'/)[1];
+
+        if (selectedMethod === 'momo') {
+            payWithMomo();
+        } else if (selectedMethod === 'stripe') {
+            payWithStripe();
+        } else {
+            submitWithCOD();
+        }
+    }
+
+    // Order type change handler
+    $(function () {
+        // Set default payment method selection
+        $('.payment-method').first().addClass('selected');
+
+        $('[name="order_type"]').change(function () {
+            if ($(this).val() == 2) {
+                $('.address-holder').hide('slow');
+            } else {
+                $('.address-holder').show('slow');
+            }
+        });
     });
-});
 </script>
 <?php
 require_once('inc/footer.php');
